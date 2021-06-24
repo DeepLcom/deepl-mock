@@ -1,0 +1,36 @@
+{
+  "name": "deepl-mock",
+  "description": "DeepL API mock server",
+  "version": "0.1.0",
+  "author": "DeepL GmbH <support@deepl.com>",
+  "license": "MIT",
+  "repository": "DeepLcom/deepl-mock",
+  "homepage": "https://www.deepl.com/",
+  "keywords": [
+    "deepl",
+    "http",
+    "mock",
+    "api"
+  ],
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "morgan": "^1.10.0",
+    "nocache": "^3.0.1"
+  },
+  "files": [
+    "auth.js",
+    "CHANGELOG.md",
+    "documents.js",
+    "languages.js",
+    "LICENSE",
+    "index.js",
+    "README.md",
+    "sessions.js",
+    "util.js"
+  ],
+  "scripts": {
+    "start": "DEEPL_MOCK_SERVER_PORT=3000 node index.js"
+  }
+}
+
