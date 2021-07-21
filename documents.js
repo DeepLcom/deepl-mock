@@ -3,35 +3,26 @@
 const fs = require("fs");
 const path = require("path");
 const languages = require('./languages');
+const util = require('./util')
 
 let documents = new Map();
-
-function cleanup() {
-    const now = Date.now();
-    // Remove all documents that have not been used for 10min
-    documents.forEach((document, document_id) => {
-        if (now - document.used > 600000) {
-            if (document.path_in) {
-                try {
-                    fs.unlinkSync(document.path_in)
-                } catch (err) {
-                    // ignore
-                }
-            }
-            if (document.path_out) {
-                try {
-                    fs.unlinkSync(document.path_out)
-                } catch (err) {
-                    // ignore
-                }
-            }
-            documents.delete(document_id);
-            console.log("Removed document:", document_id);
+util.scheduleCleanup(documents, (document, id) => {
+    if (document.path_in) {
+        try {
+            fs.unlinkSync(document.path_in)
+        } catch (err) {
+            // ignore
         }
-    });
-}
-
-setInterval(cleanup, 1000); // Time in milliseconds
+    }
+    if (document.path_out) {
+        try {
+            fs.unlinkSync(document.path_out)
+        } catch (err) {
+            // ignore
+        }
+    }
+    console.log("Removed document:", id);
+});
 
 function generateRandomHexString(length) {
     const hex = '0123456789ABCDEF';

@@ -1,17 +1,9 @@
+const util = require('./util')
+
 let users = new Map();
-
-function cleanup() {
-    const now = Date.now();
-    // Remove all users that have not been used for 10min
-    users.forEach((user, auth_key) => {
-        if (now - user.used > 600000) {
-            users.delete(auth_key);
-            console.log("Removed user account for:", auth_key);
-        }
-    });
-}
-
-setInterval(cleanup, 1000); // Time in milliseconds
+util.scheduleCleanup(users, (_, auth_key) => {
+    console.log("Removed user account for:", auth_key);
+});
 
 function userExists(auth_key) {
     return (auth_key && auth_key !== "" && auth_key !== "invalid" && users.has(auth_key));

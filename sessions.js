@@ -1,17 +1,9 @@
+const util = require('./util')
+
 let sessions = new Map();
-
-function cleanup() {
-    const now = Date.now();
-    // Remove all sessions that have not been used for 10min
-    sessions.forEach((session, uuid) => {
-        if (now - session.used > 600000) {
-            sessions.delete(uuid);
-            console.log("Removed session:", uuid);
-        }
-    });
-}
-
-setInterval(cleanup, 1000); // Time in milliseconds
+util.scheduleCleanup(sessions, (_, id) => {
+    console.log("Removed session:", id);
+});
 
 function createSession(headers) {
     let session = {}
