@@ -96,5 +96,3 @@ function translate(input, target_lang, source_lang) {
 }
 
 module.exports = {isSourceLanguage, getSourceLanguages, isTargetLanguage, getTargetLanguages, translate}
-
-
