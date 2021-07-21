@@ -1,3 +1,5 @@
+'use strict';
+
 const util = require('./util')
 
 let sessions = new Map();
@@ -57,9 +59,7 @@ module.exports = () => {
 
         if (req.session.no_response_count > 0) {
             req.session.no_response_count -= 1;
-        }
-        else
-        {
+        } else {
             return next();
         }
     };
