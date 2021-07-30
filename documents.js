@@ -111,7 +111,7 @@ async function translateDocument(document, session) {
         document.error = "Translation error triggered";
         console.log(`Failing translation of ${path_in}`)
     } else {
-        const text_in = String(fs.readFileSync(path_in));
+        const text_in = fs.readFileSync(path_in, "utf8");
         const text_out = languages.translate(text_in, document.target_lang, document.source_lang);
         fs.writeFileSync(path_out, text_out.text);
         document.path_out = path_out;
