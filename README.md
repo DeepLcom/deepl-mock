@@ -66,3 +66,7 @@ This mock server uses simplified calculations to update account usage.
 
 ### Formality, tag-handling, formatting 
 This mock server does not implement these features, however the API input parameters are validated.
+
+## Issues
+If you experience problems using the library, or would like to request a new feature, please create an 
+[issue](https://www.github.com/DeepLcom/deepl-mock/issues). 
