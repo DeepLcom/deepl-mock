@@ -1,5 +1,6 @@
 # DeepL API mock server
-A mock server that simulates some behaviour of the [DeepL API](https://www.deepl.com/docs-api/) to simplify application
+A mock server that simulates some behaviour of the
+[DeepL API](https://www.deepl.com/docs-api?utm_source=github&utm_medium=github-deepl-mock-readme) to simplify application
 testing.
 
 ## Installation
