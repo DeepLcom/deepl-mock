@@ -15,14 +15,18 @@ util.scheduleCleanup(documents, (document, id) => {
         }
     }
     if (document.path_out) {
-        try {
-            fs.unlinkSync(document.path_out)
-        } catch (err) {
-            // ignore
-        }
+        deleteFile(document.path_out)
     }
     console.log("Removed document:", id);
 });
+
+function deleteFile(file_path) {
+    try {
+        fs.unlinkSync(file_path)
+    } catch (err) {
+        // ignore
+    }
+}
 
 function generateRandomHexString(length) {
     const hex = '0123456789ABCDEF';
@@ -114,12 +118,12 @@ async function translateDocument(document, session) {
         console.log(`Translated ${path_in} to ${document.target_lang}, stored result at ${path_out}`);
     }
     console.log(`Removing input document ${path_in}`);
-    fs.unlinkSync(path_in);
+    deleteFile(path_in);
 }
 
 function removeDocument(document) {
     console.log("Removing output document " + document.path_out);
-    fs.unlinkSync(document.path_out);
+    deleteFile(document.path_out);
 
     documents.delete(document.id);
 }
