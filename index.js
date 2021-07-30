@@ -28,6 +28,7 @@ function getParam(req, name, options) {
     let v = src[name];
 
     if (options?.multi) {
+        if (v === undefined) v = [];
         v = Array.isArray(v) ? v : [v];
         if (options?.required && v.length === 0) throw `Parameter '${name}' not specified`;
 
