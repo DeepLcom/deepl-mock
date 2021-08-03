@@ -7,11 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+* Use eslint and airbnb style for code checking.
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
-* Fix issue when no array parameters are specified
+* Fix issue when no array parameters are specified.
 ### Security
 
 
