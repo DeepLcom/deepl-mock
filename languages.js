@@ -48,6 +48,7 @@ const languages = new Map([
 ]);
 
 function isSourceLanguage(langCode) {
+  // Unspecified source_lang parameter activates auto-detect
   if (langCode === undefined) return true;
   const langCodeUpper = langCode.toUpperCase();
   return languages.has(langCodeUpper) && ['source', 'both'].includes(languages.get(langCodeUpper).type);
