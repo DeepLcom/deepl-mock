@@ -35,6 +35,7 @@
     "util.js"
   ],
   "scripts": {
-    "start": "DEEPL_MOCK_SERVER_PORT=3000 node index.js"
+    "start": "DEEPL_MOCK_SERVER_PORT=3000 node index.js",
+    "lint": "eslint ."
   }
 }
