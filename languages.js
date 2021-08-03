@@ -47,70 +47,74 @@ const languages = new Map([
   ['ZH', { name: 'Chinese', type: 'both', text: '质子束' }],
 ]);
 
-function isSourceLanguage(lang_code) {
-  if (lang_code === undefined) return true;
-  lang_code = lang_code.toUpperCase();
-  return languages.has(lang_code) && ['source', 'both'].includes(languages.get(lang_code).type);
+function isSourceLanguage(langCode) {
+  if (langCode === undefined) return true;
+  const langCodeUpper = langCode.toUpperCase();
+  return languages.has(langCodeUpper) && ['source', 'both'].includes(languages.get(langCodeUpper).type);
 }
 
-function isTargetLanguage(lang_code) {
-  if (lang_code === undefined) return false;
-  lang_code = lang_code.toUpperCase();
-  return languages.has(lang_code) && ['target', 'both'].includes(languages.get(lang_code).type);
+function isTargetLanguage(langCode) {
+  if (langCode === undefined) return false;
+  const langCodeUpper = langCode.toUpperCase();
+  return languages.has(langCodeUpper) && ['target', 'both'].includes(languages.get(langCodeUpper).type);
 }
 
 function getSourceLanguages() {
-  const source_languages = [];
+  const sourceLanguages = [];
   languages.forEach((lang, code) => {
     if (['source', 'both'].includes(lang.type)) {
-      source_languages.push({
+      sourceLanguages.push({
         language: code,
         name: lang.name,
       });
     }
   });
-  return source_languages;
+  return sourceLanguages;
 }
 
 function getTargetLanguages() {
-  const target_languages = [];
+  const targetLanguages = [];
   languages.forEach((lang, code) => {
     if (['target', 'both'].includes(lang.type)) {
-      target_languages.push({
+      targetLanguages.push({
         language: code,
         name: lang.name,
         supports_formality: Boolean(lang.formality),
       });
     }
   });
-  return target_languages;
+  return targetLanguages;
 }
 
-function translate_line(input, target_lang) {
+function translateLine(input, targetLang) {
   if (input === '') return '';
-  // Mock server simplification: each input text is translated to a fixed text for the target language
-  return languages.get(target_lang).text;
+  // Mock server simplification: each input text is translated to a fixed text for the target
+  // language
+  return languages.get(targetLang).text;
 }
 
-function translate(input, target_lang, source_lang) {
-  if (!source_lang) {
-    // Mock server simplification: if source_lang undefined and no test-string match, assume source text is English
-    source_lang = 'EN';
-    for (const [code, lang] of languages) {
+function translate(input, targetLang, sourceLangIn) {
+  let sourceLang = sourceLangIn;
+  if (!sourceLang) {
+    // Mock server simplification: if sourceLang undefined and no test-string match, assume
+    // source text is English
+    sourceLang = 'EN';
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [code, lang] of languages.entries()) {
       if (input.startsWith(lang.text)) {
-        source_lang = code;
+        sourceLang = code;
         break;
       }
     }
   }
 
   // Split into lines and translate individually
-  const text = input.split('\n').map((input) => (translate_line(input, target_lang))).join('\n');
+  const text = input.split('\n').map((line) => (translateLine(line, targetLang))).join('\n');
 
-  const text_short = text.length < 50 ? text : `${text.slice(0, 47)}...`;
-  const input_short = input.length < 50 ? input : `${input.slice(0, 47)}...`;
-  console.log(`Translated "${input_short}" to "${text_short}"`);
-  return { detected_source_language: source_lang, text };
+  const textShort = text.length < 50 ? text : `${text.slice(0, 47)}...`;
+  const inputShort = input.length < 50 ? input : `${input.slice(0, 47)}...`;
+  console.log(`Translated "${inputShort}" to "${textShort}"`);
+  return { detected_source_language: sourceLang, text };
 }
 
 module.exports = {

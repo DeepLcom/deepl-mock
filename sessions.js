@@ -19,15 +19,16 @@ function createSession(headers) {
     doc_translate_time: 'mock-server-session-doc-translate-time',
   };
 
-  for (const var_name in vars) {
-    const header_name = vars[var_name];
-    if (headers[header_name] !== undefined) {
-      const value = Number(headers[header_name]);
-      if (isNaN(value)) {
-        console.log(`Invalid value for header '${header_name}', expected number.`);
+  // eslint-disable-next-line guard-for-in,no-restricted-syntax
+  for (const varName in vars) {
+    const headerName = vars[varName];
+    if (headers[headerName] !== undefined) {
+      const value = Number(headers[headerName]);
+      if (Number.isNaN(value)) {
+        console.log(`Invalid value for header '${headerName}', expected number.`);
       } else {
-        session[var_name] = value;
-        console.log(`Session header '${header_name}' = ${value}.`);
+        session[varName] = value;
+        console.log(`Session header '${headerName}' = ${value}.`);
       }
     }
   }
@@ -55,7 +56,8 @@ module.exports = () => (req, res, next) => {
 
   if (req.session.no_response_count > 0) {
     req.session.no_response_count -= 1;
-  } else {
-    return next();
+    return undefined; // Give no response and do not continue with next handler
   }
+
+  return next();
 };

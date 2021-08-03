@@ -32,23 +32,25 @@ function getParam(req, name, options) {
   if (options?.multi) {
     if (v === undefined) v = [];
     v = Array.isArray(v) ? v : [v];
-    if (options?.required && v.length === 0) throw `Parameter '${name}' not specified`;
+    if (options?.required && v.length === 0) throw new Error(`Parameter '${name}' not specified`);
   } else {
     v = Array.isArray(v) ? v[0] : v;
-    if (options?.required && v === undefined) throw `Parameter '${name}' not specified`;
+    if (options?.required && v === undefined) throw new Error(`Parameter '${name}' not specified`);
     else if (v === undefined) v = options?.default;
 
     if (options?.lower && v) v = v.toLowerCase();
     else if (options?.upper && v) v = v.toUpperCase();
 
-    if (options?.validator && options?.validator(v) === false) throw `Value for '${name}' not supported.`;
-    if (options?.allowedValues && !options?.allowedValues.includes(v)) throw `Value for '${name}' not supported.`;
+    if (options?.validator && options?.validator(v) === false) throw new Error(`Value for '${name}' not supported.`);
+    if (options?.allowedValues && !options?.allowedValues.includes(v)) throw new Error(`Value for '${name}' not supported.`);
   }
 
   return v;
 }
 
 function checkLimit(usage, type, request) {
+  /* eslint-disable no-param-reassign */
+  // Note: this function modifies the usage argument, incrementing the count used
   const count = `${type}_count`;
   const limit = `${type}_limit`;
 
@@ -57,20 +59,21 @@ function checkLimit(usage, type, request) {
 
   usage[count] += request;
   return true;
+  /* eslint-enable no-param-reassign */
 }
 
-async function handle_languages(req, res) {
+async function handleLanguages(req, res) {
   try {
-    const type = getParam(req, 'type', {
+    const paramType = getParam(req, 'type', {
       default: 'source',
       validator: (type) => {
         if (!['source', 'target'].includes(type)) {
-          throw "Parameter 'type' is invalid. 'source' and 'target' are valid values.";
+          throw new Error("Parameter 'type' is invalid. 'source' and 'target' are valid values.");
         }
       },
     });
 
-    if (type === 'target') {
+    if (paramType === 'target') {
       res.send(languages.getTargetLanguages());
     } else {
       res.send(languages.getSourceLanguages());
@@ -80,16 +83,16 @@ async function handle_languages(req, res) {
   }
 }
 
-async function handle_usage(req, res) {
+async function handleUsage(req, res) {
   res.send(req.user_account.usage);
 }
 
-async function handle_translate(req, res) {
+async function handleTranslate(req, res) {
   try {
-    const target_lang = getParam(req, 'target_lang', {
+    const targetLang = getParam(req, 'target_lang', {
       upper: true, validator: languages.isTargetLanguage,
     });
-    const source_lang = getParam(req, 'source_lang', {
+    const sourceLang = getParam(req, 'source_lang', {
       upper: true, validator: languages.isSourceLanguage,
     });
     const textArray = getParam(req, 'text', { multi: true, required: true });
@@ -112,7 +115,7 @@ async function handle_translate(req, res) {
       res.status(456).send({ message: 'Quota for this billing period has been exceeded.' });
     } else {
       const body = {
-        translations: textArray.map((text) => languages.translate(text, target_lang, source_lang)),
+        translations: textArray.map((text) => languages.translate(text, targetLang, sourceLang)),
       };
       res.status(200).send(body);
     }
@@ -121,15 +124,15 @@ async function handle_translate(req, res) {
   }
 }
 
-async function handle_document(req, res) {
+async function handleDocument(req, res) {
   try {
-    const target_lang = getParam(req, 'target_lang', {
+    const targetLang = getParam(req, 'target_lang', {
       upper: true, validator: languages.isTargetLanguage,
     });
-    const source_lang = getParam(req, 'source_lang', {
+    const sourceLang = getParam(req, 'source_lang', {
       upper: true, validator: languages.isSourceLanguage,
     });
-    const { auth_key } = req.user_account;
+    const { authKey } = req.user_account;
 
     if (!req.files || req.files.file === undefined) {
       res.status(400).send({ message: 'Invalid file data.' });
@@ -143,7 +146,7 @@ async function handle_document(req, res) {
                     || !checkLimit(req.user_account.usage, 'team_document', 1)) {
           res.status(456).send({ message: 'Quota for this billing period has been exceeded.' });
         } else {
-          const document = await documents.createDocument(file, auth_key, target_lang, source_lang);
+          const document = await documents.createDocument(file, authKey, targetLang, sourceLang);
           res.status(200).send({
             document_id: document.id,
             document_key: document.key,
@@ -159,11 +162,15 @@ async function handle_document(req, res) {
   }
 }
 
-async function handle_document_status(req, res) {
+async function handleDocumentStatus(req, res) {
   try {
-    const auth_key = getParam(req, 'auth_key', { single: true });
-    const document_key = getParam(req, 'document_key', { single: true });
-    const document = documents.getDocument(req.params.document_id, document_key, auth_key, req.session);
+    const authKey = getParam(req, 'auth_key', { single: true });
+    console.log('authKey:', authKey);
+    const documentKey = getParam(req, 'document_key', { single: true });
+    console.log('documentKey:', documentKey);
+    const document = documents.getDocument(req.params.document_id, documentKey, authKey,
+      req.session);
+    console.log('document:', document);
 
     const body = {
       document_id: document.id,
@@ -178,16 +185,18 @@ async function handle_document_status(req, res) {
     }
 
     res.status(200).send(body);
-  } catch {
+  } catch (err) {
+    console.log(err);
     res.status(404).send();
   }
 }
 
-async function handle_document_download(req, res) {
+async function handleDocumentDownload(req, res) {
   try {
-    const auth_key = getParam(req, 'auth_key', { single: true });
-    const document_key = getParam(req, 'document_key', { single: true });
-    const document = documents.getDocument(req.params.document_id, document_key, auth_key, req.session);
+    const authKey = getParam(req, 'auth_key', { single: true });
+    const documentKey = getParam(req, 'document_key', { single: true });
+    const document = documents.getDocument(req.params.document_id, documentKey, authKey,
+      req.session);
 
     if (document.status !== 'done') {
       res.status(503).send();
@@ -206,31 +215,31 @@ async function handle_document_download(req, res) {
   }
 }
 
-app.get('/v2/languages', auth, handle_languages);
-app.post('/v2/languages', auth, handle_languages);
+app.get('/v2/languages', auth, handleLanguages);
+app.post('/v2/languages', auth, handleLanguages);
 
-app.get('/v2/usage', auth, handle_usage);
-app.post('/v2/usage', auth, handle_usage);
+app.get('/v2/usage', auth, handleUsage);
+app.post('/v2/usage', auth, handleUsage);
 
-app.get('/v2/translate', auth, handle_translate);
-app.post('/v2/translate', auth, handle_translate);
+app.get('/v2/translate', auth, handleTranslate);
+app.post('/v2/translate', auth, handleTranslate);
 
-app.post('/v2/document', auth, handle_document);
+app.post('/v2/document', auth, handleDocument);
 
-app.get('/v2/document/:document_id', auth, handle_document_status);
-app.post('/v2/document/:document_id', auth, handle_document_status);
+app.get('/v2/document/:document_id', auth, handleDocumentStatus);
+app.post('/v2/document/:document_id', auth, handleDocumentStatus);
 
-app.get('/v2/document/:document_id/result', auth, handle_document_download);
-app.post('/v2/document/:document_id/result', auth, handle_document_download);
+app.get('/v2/document/:document_id/result', auth, handleDocumentDownload);
+app.post('/v2/document/:document_id/result', auth, handleDocumentDownload);
 
 app.all('/*', (req, res) => {
   res.status(404).send();
 });
 
-const envvar_port = 'DEEPL_MOCK_SERVER_PORT';
-const port = Number(process.env[envvar_port]);
-if (isNaN(port)) {
-  console.error(`The ${envvar_port} environment variable must be defined as the port number.`);
+const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
+const port = Number(process.env[envVarPort]);
+if (Number.isNaN(port)) {
+  console.error(`The ${envVarPort} environment variable must be defined as the port number.`);
   process.exit(2);
 }
 

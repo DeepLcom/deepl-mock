@@ -3,11 +3,19 @@ const path = require('path');
 const languages = require('./languages');
 const util = require('./util');
 
+function deleteFile(filePath) {
+  try {
+    fs.unlinkSync(filePath);
+  } catch (err) {
+    // ignore
+  }
+}
+
 const documents = new Map();
 util.scheduleCleanup(documents, (document, id) => {
-  if (document.path_in) {
+  if (document.pathIn) {
     try {
-      fs.unlinkSync(document.path_in);
+      fs.unlinkSync(document.pathIn);
     } catch (err) {
       // ignore
     }
@@ -18,78 +26,77 @@ util.scheduleCleanup(documents, (document, id) => {
   console.log('Removed document:', id);
 });
 
-function deleteFile(file_path) {
-  try {
-    fs.unlinkSync(file_path);
-  } catch (err) {
-    // ignore
-  }
-}
-
 function generateRandomHexString(length) {
   const hex = '0123456789ABCDEF';
   let output = '';
-  for (let i = 0; i < length; ++i) {
+  for (let i = 0; i < length; i += 1) {
     output += hex.charAt(Math.floor(Math.random() * 16));
   }
   return output;
 }
 
-async function createDocument(file, auth_key, target_lang, source_lang) {
+class DocumentError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.status = status;
+  }
+}
+
+async function createDocument(file, authKey, targetLang, sourceLang) {
   const extname = path.extname(file.name).toLowerCase();
 
   if (!(['.txt', '.docx', '.pptx', '.htm', '.html'].includes(extname))) {
-    throw { status: 400, message: 'Invalid file data.' };
+    throw new DocumentError('Invalid file data.', 400);
   }
   if (extname !== '.txt') {
-    throw { status: 503, message: 'Mock server only implements document translation for .txt files.' };
+    throw new DocumentError('Mock server only implements document translation for .txt files.', 503);
   }
 
   // Generate id & key for document
-  const document_id = generateRandomHexString(32);
-  const document_key = generateRandomHexString(64);
-  const path_in = `./documents/${document_id}`;
+  const documentId = generateRandomHexString(32);
+  const documentKey = generateRandomHexString(64);
+  const pathIn = `./documents/${documentId}`;
 
-  await file.mv(path_in);
+  await file.mv(pathIn);
 
   // Add document to list
   const document = {
-    id: document_id,
-    key: document_key,
-    path_in,
+    id: documentId,
+    key: documentKey,
+    pathIn,
     path_out: undefined,
     name: file.name,
     mimetype: file.mimetype,
     created: Date.now(),
     used: Date.now(),
-    auth_key,
-    source_lang,
-    target_lang,
+    authKey,
+    source_lang: sourceLang,
+    target_lang: targetLang,
     // Mock server simplification: billed characters assumed to be file size
     billed_characters: file.size,
     status: 'queued',
     seconds_remaining: undefined,
     error: undefined,
   };
-  documents.set(document_id, document);
-  console.log(`Storing document ${document_id} (key: ${document_key})`);
+  documents.set(documentId, document);
+  console.log(`Storing document ${documentId} (key: ${documentKey})`);
   return document;
 }
 
-function getDocument(document_id, document_key, auth_key, session) {
-  const document = documents.get(document_id);
-  if (document !== undefined && document.key === document_key && document.auth_key === auth_key) {
-    const queued_until = session?.doc_queue_time || 0;
-    const translating_until = (session?.doc_translate_time || 0) + queued_until;
+function getDocument(documentId, documentKey, authKey, session) {
+  const document = documents.get(documentId);
+  if (document?.key === documentKey && document.authKey === authKey) {
+    const queuedUntil = session?.doc_queue_time || 0;
+    const translatingUntil = (session?.doc_translate_time || 0) + queuedUntil;
     document.used = Date.now();
     const age = document.used - document.created;
     if (document.error) {
       document.status = 'error';
-    } else if (age < queued_until) {
+    } else if (age < queuedUntil) {
       document.status = 'queued';
-    } else if (age < translating_until || document.path_out === undefined) {
+    } else if (age < translatingUntil || document.path_out === undefined) {
       document.status = 'translating';
-      document.seconds_remaining = Math.max(translating_until - age, 0) / 1000;
+      document.seconds_remaining = Math.max(translatingUntil - age, 0) / 1000;
     } else {
       document.status = 'done';
       document.seconds_remaining = 0;
@@ -97,25 +104,30 @@ function getDocument(document_id, document_key, auth_key, session) {
 
     return document;
   }
-  throw 'not found';
+  throw new Error('not found');
 }
 
 async function translateDocument(document, session) {
-  const { path_in } = document;
-  const path_out = `${path_in}.result`;
+  /* eslint-disable no-param-reassign */
+  // Note: this function may modify the document and session arguments
+  //   session failed document will be checked and decremented if active.
+  //   document will modified with the translation result.
+  const { pathIn } = document;
+  const pathOut = `${pathIn}.result`;
   if (session?.doc_failure > 0) {
     session.doc_failure -= 1;
     document.error = 'Translation error triggered';
-    console.log(`Failing translation of ${path_in}`);
+    console.log(`Failing translation of ${pathIn}`);
   } else {
-    const text_in = fs.readFileSync(path_in, 'utf8');
-    const text_out = languages.translate(text_in, document.target_lang, document.source_lang);
-    fs.writeFileSync(path_out, text_out.text);
-    document.path_out = path_out;
-    console.log(`Translated ${path_in} to ${document.target_lang}, stored result at ${path_out}`);
+    const textIn = fs.readFileSync(pathIn, 'utf8');
+    const textOut = languages.translate(textIn, document.target_lang, document.source_lang);
+    fs.writeFileSync(pathOut, textOut.text);
+    document.path_out = pathOut;
+    console.log(`Translated ${pathIn} to ${document.target_lang}, stored result at ${pathOut}`);
   }
-  console.log(`Removing input document ${path_in}`);
-  deleteFile(path_in);
+  console.log(`Removing input document ${pathIn}`);
+  deleteFile(pathIn);
+  /* eslint-enable no-param-reassign */
 }
 
 function removeDocument(document) {
