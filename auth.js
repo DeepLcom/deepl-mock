@@ -33,22 +33,36 @@ function createUser(authKey, session) {
   });
 }
 
+function getAuthKey(req) {
+  // Check for Authorization header
+  const authorizationHeader = req.headers.authorization;
+  if (authorizationHeader !== undefined) {
+    const prefixHeaderAuthKey = 'DeepL-Auth-Key ';
+    if (authorizationHeader.startsWith(prefixHeaderAuthKey)) {
+      return authorizationHeader.substring(prefixHeaderAuthKey.length);
+    }
+    console.log(`Received Authorization header without expected prefix (${prefixHeaderAuthKey}): ${authorizationHeader}`);
+    return undefined;
+  }
+  // If no Authorization header is included, fall back to query or body parameters
+  const authKeyParam = req.query.auth_key || req.body.auth_key;
+  return Array.isArray(authKeyParam) ? authKeyParam[0] : authKeyParam;
+}
+
 module.exports = (req, res, next) => {
   // Middleware function applied to all incoming requests
-  // Check for auth_key param and compare against user list
-  let authKeyParam = req.query.auth_key || req.body.auth_key;
-  authKeyParam = Array.isArray(authKeyParam) ? authKeyParam[0] : authKeyParam;
+  const authKey = getAuthKey(req);
 
-  if (authKeyParam === undefined || authKeyParam === '' || authKeyParam === 'invalid') {
+  if (authKey === undefined || authKey === '' || authKey === 'invalid') {
     res.status(403).send();
     return undefined; // Give no response and do not continue with next handler
   }
 
-  if (!userExists(authKeyParam)) {
-    createUser(authKeyParam, req.session);
-    console.log(`Added user account for ${authKeyParam}`);
+  if (!userExists(authKey)) {
+    createUser(authKey, req.session);
+    console.log(`Added user account for ${authKey}`);
   }
-  req.user_account = users.get(authKeyParam);
+  req.user_account = users.get(authKey);
   req.user_account.used = Date.now();
   return next();
 };

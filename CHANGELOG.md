@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+* Add support for Authorization header with "DeepL-Auth-Key " prefix. 
 ### Changed
 ### Deprecated
 ### Removed
