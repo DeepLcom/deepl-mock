@@ -79,7 +79,7 @@ async function handleLanguages(req, res) {
       res.send(languages.getSourceLanguages());
     }
   } catch (err) {
-    res.status(400).send({ message: err });
+    res.status(400).send({ message: err.message });
   }
 }
 
@@ -120,7 +120,7 @@ async function handleTranslate(req, res) {
       res.status(200).send(body);
     }
   } catch (err) {
-    res.status(400).send({ message: err });
+    res.status(400).send({ message: err.message });
   }
 }
 
@@ -158,7 +158,7 @@ async function handleDocument(req, res) {
       }
     }
   } catch (err) {
-    res.status(400).send({ message: err });
+    res.status(400).send({ message: err.message });
   }
 }
 
@@ -186,7 +186,7 @@ async function handleDocumentStatus(req, res) {
 
     res.status(200).send(body);
   } catch (err) {
-    console.log(err);
+    console.log(err.message);
     res.status(404).send();
   }
 }

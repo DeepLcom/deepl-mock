@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 ### Fixed
+* Fix bug in error responses introduced in eslint refactoring.
 ### Security
 
 
