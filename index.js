@@ -164,7 +164,7 @@ async function handleDocument(req, res) {
 
 async function handleDocumentStatus(req, res) {
   try {
-    const authKey = getParam(req, 'auth_key', { single: true });
+    const { authKey } = req.user_account;
     console.log('authKey:', authKey);
     const documentKey = getParam(req, 'document_key', { single: true });
     console.log('documentKey:', documentKey);
@@ -193,7 +193,7 @@ async function handleDocumentStatus(req, res) {
 
 async function handleDocumentDownload(req, res) {
   try {
-    const authKey = getParam(req, 'auth_key', { single: true });
+    const { authKey } = req.user_account;
     const documentKey = getParam(req, 'document_key', { single: true });
     const document = documents.getDocument(req.params.document_id, documentKey, authKey,
       req.session);
