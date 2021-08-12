@@ -1,3 +1,7 @@
+// Copyright 2021 DeepL GmbH (https://www.deepl.com)
+// Use of this source code is governed by an MIT
+// license that can be found in the LICENSE file.
+
 function cleanup(dictionary, lifetimeMs, callback) {
   const now = Date.now();
   // Remove all objects with a used timestamp older than specified lifetime
