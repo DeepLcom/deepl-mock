@@ -64,6 +64,11 @@ function isTargetLanguage(langCode) {
   return languages.has(langCodeUpper) && ['target', 'both'].includes(languages.get(langCodeUpper).type);
 }
 
+function isGlossaryLanguage(langCode) {
+  const langCodeUpper = langCode.toUpperCase();
+  return ['EN', 'DE', 'FR', 'ES'].includes(langCodeUpper);
+}
+
 function getSourceLanguages() {
   const sourceLanguages = [];
   languages.forEach((lang, code) => {
@@ -91,16 +96,22 @@ function getTargetLanguages() {
   return targetLanguages;
 }
 
-function translateLine(input, targetLang) {
+function translateLine(input, targetLang, glossary) {
   if (input === '') return '';
+
+  if (glossary) {
+    const glossaryResult = glossary.translate(input);
+    if (glossaryResult) return glossaryResult;
+  }
+
   // Mock server simplification: each input text is translated to a fixed text for the target
   // language
   return languages.get(targetLang).text;
 }
 
-function translate(input, targetLang, sourceLangIn) {
+function translate(input, targetLang, sourceLangIn, glossary) {
   let sourceLang = sourceLangIn;
-  if (!sourceLang) {
+  if (!sourceLang && glossary === undefined) {
     // Mock server simplification: if sourceLang undefined and no test-string match, assume
     // source text is English
     sourceLang = 'EN';
@@ -114,7 +125,7 @@ function translate(input, targetLang, sourceLangIn) {
   }
 
   // Split into lines and translate individually
-  const text = input.split('\n').map((line) => (translateLine(line, targetLang))).join('\n');
+  const text = input.split('\n').map((line) => (translateLine(line, targetLang, glossary))).join('\n');
 
   const textShort = text.length < 50 ? text : `${text.slice(0, 47)}...`;
   const inputShort = input.length < 50 ? input : `${input.slice(0, 47)}...`;
@@ -123,5 +134,10 @@ function translate(input, targetLang, sourceLangIn) {
 }
 
 module.exports = {
-  isSourceLanguage, getSourceLanguages, isTargetLanguage, getTargetLanguages, translate,
+  isGlossaryLanguage,
+  isSourceLanguage,
+  getSourceLanguages,
+  isTargetLanguage,
+  getTargetLanguages,
+  translate,
 };

@@ -39,21 +39,14 @@ function generateRandomHexString(length) {
   return output;
 }
 
-class DocumentError extends Error {
-  constructor(message, status) {
-    super(message);
-    this.status = status;
-  }
-}
-
 async function createDocument(file, authKey, targetLang, sourceLang) {
   const extname = path.extname(file.name).toLowerCase();
 
   if (!(['.txt', '.docx', '.pptx', '.htm', '.html'].includes(extname))) {
-    throw new DocumentError('Invalid file data.', 400);
+    throw new util.HttpError('Invalid file data.', 400);
   }
   if (extname !== '.txt') {
-    throw new DocumentError('Mock server only implements document translation for .txt files.', 503);
+    throw new util.HttpError('Mock server only implements document translation for .txt files.', 503);
   }
 
   // Generate id & key for document
@@ -108,7 +101,7 @@ function getDocument(documentId, documentKey, authKey, session) {
 
     return document;
   }
-  throw new Error('not found');
+  throw new util.HttpError('not found', 404);
 }
 
 async function translateDocument(document, session) {

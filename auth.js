@@ -46,6 +46,7 @@ function getAuthKey(req) {
       return authorizationHeader.substring(prefixHeaderAuthKey.length);
     }
     console.log(`Received Authorization header without expected prefix (${prefixHeaderAuthKey}): ${authorizationHeader}`);
+    // Note: glossaries endpoints respond 400/{message:"Invalid or missing Authorization header"}
     return undefined;
   }
   // If no Authorization header is included, fall back to query or body parameters

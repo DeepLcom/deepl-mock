@@ -25,9 +25,11 @@ app.use(morgan('dev')); // Developer-style formatting
 const sessions = require('./sessions');
 
 app.use(sessions());
-const languages = require('./languages');
-const documents = require('./documents');
 const auth = require('./auth');
+const documents = require('./documents');
+const glossaries = require('./glossaries');
+const languages = require('./languages');
+const util = require('./util');
 
 function getParam(req, name, options) {
   let v = req.body[name] || req.query[name];
@@ -35,17 +37,28 @@ function getParam(req, name, options) {
   if (options?.multi) {
     if (v === undefined) v = [];
     v = Array.isArray(v) ? v : [v];
-    if (options?.required && v.length === 0) throw new Error(`Parameter '${name}' not specified`);
+    if (options?.required && v.length === 0) {
+      if (options?.newErrorMessage) throw new util.HttpError(`Missing or invalid argument: ${name}'`);
+      throw new util.HttpError(`Parameter '${name}' not specified`);
+    }
   } else {
     v = Array.isArray(v) ? v[0] : v;
-    if (options?.required && v === undefined) throw new Error(`Parameter '${name}' not specified`);
-    else if (v === undefined) v = options?.default;
+    if (options?.required && v === undefined) {
+      if (options?.newErrorMessage) throw new util.HttpError(`Missing or invalid argument: ${name}'`);
+      throw new util.HttpError(`Parameter '${name}' not specified`);
+    } else if (v === undefined) v = options?.default;
 
     if (options?.lower && v) v = v.toLowerCase();
     else if (options?.upper && v) v = v.toUpperCase();
 
-    if (options?.validator && options?.validator(v) === false) throw new Error(`Value for '${name}' not supported.`);
-    if (options?.allowedValues && !options?.allowedValues.includes(v)) throw new Error(`Value for '${name}' not supported.`);
+    if (options?.validator && options?.validator(v) === false) {
+      if (options?.newErrorMessage) throw new util.HttpError(`Missing or invalid argument: ${name}'`);
+      throw new util.HttpError(`Value for '${name}' not supported.`);
+    }
+    if (options?.allowedValues && !options?.allowedValues.includes(v)) {
+      if (options?.newErrorMessage) throw new util.HttpError(`Missing or invalid argument: ${name}'`);
+      throw new util.HttpError(`Value for '${name}' not supported.`);
+    }
   }
 
   return v;
@@ -98,7 +111,16 @@ async function handleTranslate(req, res) {
     const sourceLang = getParam(req, 'source_lang', {
       upper: true, validator: languages.isSourceLanguage,
     });
+    const { authKey } = req.user_account;
     const textArray = getParam(req, 'text', { multi: true, required: true });
+
+    const glossaryId = getParam(req, 'glossary_id',
+      { validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)) });
+    if (glossaryId !== undefined && sourceLang === undefined) {
+      throw new util.HttpError('Use of a glossary requires the source_lang parameter to be specified', 400);
+    }
+    const glossary = glossaryId === undefined ? undefined
+      : glossaries.getGlossary(glossaryId, authKey);
 
     // The following parameters are validated but not used by the mock server
     getParam(req, 'formality', {
@@ -118,7 +140,8 @@ async function handleTranslate(req, res) {
       res.status(456).send({ message: 'Quota for this billing period has been exceeded.' });
     } else {
       const body = {
-        translations: textArray.map((text) => languages.translate(text, targetLang, sourceLang)),
+        translations: textArray.map((text) => languages.translate(text, targetLang, sourceLang,
+          glossary)),
       };
       res.status(200).send(body);
     }
@@ -157,7 +180,7 @@ async function handleDocument(req, res) {
           await documents.translateDocument(document, req.session);
         }
       } catch (err) {
-        res.status(err.status).send({ message: err.message });
+        res.status(err.status()).send(err.body());
       }
     }
   } catch (err) {
@@ -218,6 +241,87 @@ async function handleDocumentDownload(req, res) {
   }
 }
 
+async function handleGlossaryList(req, res) {
+  try {
+    // Access glossary_id param from path, note: glossary_id is optional, so may be undefined
+    const glossaryId = req.params.glossary_id;
+    const { authKey } = req.user_account;
+
+    if (glossaryId !== undefined) {
+      const glossaryInfo = glossaries.getGlossaryInfo(glossaryId, authKey);
+      res.status(200).send(glossaryInfo);
+    } else {
+      const glossaryList = glossaries.getGlossaryInfoList(authKey);
+      res.status(200).send({ glossaries: glossaryList });
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
+async function handleGlossaryEntries(req, res) {
+  try {
+    if (req.accepts('text/tab-separated-values')) {
+      const glossaryId = req.params.glossary_id;
+      const { authKey } = req.user_account;
+      const entries = glossaries.getGlossaryEntries(glossaryId, authKey);
+      res.contentType('text/tab-separated-values; charset=UTF-8');
+      res.status(200).send(entries);
+    } else {
+      res.status(415).send({ message: 'No supported media type specified in Accept header' });
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
+async function handleGlossaryCreate(req, res) {
+  try {
+    const { authKey } = req.user_account;
+
+    const targetLang = getParam(req, 'target_lang', {
+      upper: true, validator: languages.isGlossaryLanguage,
+    });
+    const sourceLang = getParam(req, 'source_lang', {
+      upper: true, validator: languages.isGlossaryLanguage,
+    });
+    const name = getParam(req, 'name', {
+      required: true,
+      newErrorMessage: true,
+      validator: (value) => value.length !== 0,
+    });
+    const entriesTsv = getParam(req, 'entries', { required: true });
+    getParam(req, 'entries_format', {
+      required: true,
+      validator: (value) => {
+        if (value !== 'tsv') {
+          throw new util.HttpError('Unsupported entry format specified', 401);
+        }
+      },
+    });
+    const glossaryInfo = glossaries.createGlossary(name, authKey, targetLang, sourceLang,
+      entriesTsv);
+    res.status(201).send(glossaryInfo);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
+async function handleGlossaryDelete(req, res) {
+  try {
+    const glossaryId = req.params.glossary_id;
+    const { authKey } = req.user_account;
+    glossaries.removeGlossary(glossaryId, authKey);
+    res.status(204).send();
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
 app.get('/v2/languages', auth, handleLanguages);
 app.post('/v2/languages', auth, handleLanguages);
 
@@ -234,6 +338,12 @@ app.post('/v2/document/:document_id', auth, handleDocumentStatus);
 
 app.get('/v2/document/:document_id/result', auth, handleDocumentDownload);
 app.post('/v2/document/:document_id/result', auth, handleDocumentDownload);
+
+app.post('/v2/glossaries', auth, handleGlossaryCreate);
+app.get('/v2/glossaries', auth, handleGlossaryList);
+app.get('/v2/glossaries/:glossary_id', auth, handleGlossaryList);
+app.get('/v2/glossaries/:glossary_id/entries', auth, handleGlossaryEntries);
+app.delete('/v2/glossaries/:glossary_id', auth, handleGlossaryDelete);
 
 app.all('/*', (req, res) => {
   res.status(404).send();
