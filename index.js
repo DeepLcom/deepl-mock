@@ -30,8 +30,7 @@ const documents = require('./documents');
 const auth = require('./auth');
 
 function getParam(req, name, options) {
-  const src = req.method === 'GET' ? req.query : req.body;
-  let v = src[name];
+  let v = req.body[name] || req.query[name];
 
   if (options?.multi) {
     if (v === undefined) v = [];
