@@ -33,7 +33,7 @@ function createUser(authKey, session) {
   users.set(authKey, {
     authKey,
     usage,
-    used: Date.now(),
+    used: new Date(),
   });
 }
 
@@ -68,6 +68,6 @@ module.exports = (req, res, next) => {
     console.log(`Added user account for ${authKey}`);
   }
   req.user_account = users.get(authKey);
-  req.user_account.used = Date.now();
+  req.user_account.used = new Date();
   return next();
 };

@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 function cleanup(dictionary, lifetimeMs, callback) {
-  const now = Date.now();
+  const now = new Date();
   // Remove all objects with a used timestamp older than specified lifetime
   dictionary.forEach((object, id) => {
     if (now - object.used > lifetimeMs) {

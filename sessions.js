@@ -53,7 +53,7 @@ module.exports = () => (req, res, next) => {
     }
 
     req.session = sessions.get(uuid);
-    req.session.used = Date.now();
+    req.session.used = new Date();
   } else {
     req.session = {};
   }

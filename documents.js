@@ -64,8 +64,8 @@ async function createDocument(file, authKey, targetLang, sourceLang) {
     path_out: undefined,
     name: file.name,
     mimetype: file.mimetype,
-    created: Date.now(),
-    used: Date.now(),
+    created: new Date(),
+    used: new Date(),
     authKey,
     source_lang: sourceLang,
     target_lang: targetLang,
@@ -85,7 +85,7 @@ function getDocument(documentId, documentKey, authKey, session) {
   if (document?.key === documentKey && document.authKey === authKey) {
     const queuedUntil = session?.doc_queue_time || 0;
     const translatingUntil = (session?.doc_translate_time || 0) + queuedUntil;
-    document.used = Date.now();
+    document.used = new Date();
     const age = document.used - document.created;
     if (document.error) {
       document.status = 'error';

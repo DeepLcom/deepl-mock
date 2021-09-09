@@ -3,7 +3,6 @@
 // license that can be found in the LICENSE file.
 
 const uuid = require('uuid');
-const languages = require('./languages');
 const util = require('./util');
 
 const glossaries = new Map();
@@ -96,7 +95,7 @@ function createGlossary(name, authKey, targetLang, sourceLang, entriesTsv) {
     glossaryId,
     name,
     created: new Date(),
-    used: Date.now(), // TODO Refactor this to use Date() object
+    used: new Date(),
     ready: true,
     authKey,
     sourceLang,
@@ -112,7 +111,7 @@ function createGlossary(name, authKey, targetLang, sourceLang, entriesTsv) {
 function getGlossary(glossaryId, authKey) {
   const glossary = glossaries.get(glossaryId);
   if (glossary?.authKey === authKey) {
-    glossary.used = Date.now();
+    glossary.used = new Date();
     return glossary;
   }
   throw new util.HttpError('not found', 404);

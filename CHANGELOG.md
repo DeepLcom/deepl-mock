@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Fixed
 * Accept both query and body parameters for all HTTP methods.
+* Refactor internal date usage to use Date objects.
 ### Security
 
 
