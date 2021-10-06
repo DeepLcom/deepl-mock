@@ -55,8 +55,8 @@ function extractGlossaryInfo(glossary) {
     glossary_id: glossary.glossaryId,
     name: glossary.name,
     ready: glossary.ready,
-    target_lang: glossary.targetLang,
-    source_lang: glossary.sourceLang,
+    target_lang: glossary.targetLang.toLowerCase(),
+    source_lang: glossary.sourceLang.toLowerCase(),
     creation_time: glossary.created.toISOString(),
     entry_count: glossary.entryList.length,
   };
