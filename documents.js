@@ -93,7 +93,7 @@ function getDocument(documentId, documentKey, authKey, session) {
       document.status = 'queued';
     } else if (age < translatingUntil || document.path_out === undefined) {
       document.status = 'translating';
-      document.seconds_remaining = Math.max(translatingUntil - age, 0) / 1000;
+      document.seconds_remaining = Math.round(Math.max(translatingUntil - age, 0) / 1000);
     } else {
       document.status = 'done';
       document.seconds_remaining = 0;
