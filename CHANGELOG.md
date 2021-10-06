@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+* Add support for /v2/glossary-languages-pair endpoint.
 ### Changed
 ### Deprecated
 ### Removed

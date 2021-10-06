@@ -290,6 +290,37 @@ async function handleGlossaryEntries(req, res) {
   }
 }
 
+function handleGlossaryLanguages(req, res) {
+  try {
+    res.status(200).send(
+      {
+        supported_languages: [{
+          source_lang: 'de',
+          target_lang: 'en',
+        }, {
+          source_lang: 'en',
+          target_lang: 'de',
+        }, {
+          source_lang: 'en',
+          target_lang: 'es',
+        }, {
+          source_lang: 'en',
+          target_lang: 'fr',
+        }, {
+          source_lang: 'es',
+          target_lang: 'en',
+        }, {
+          source_lang: 'fr',
+          target_lang: 'en',
+        }],
+      },
+    );
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
 async function handleGlossaryCreate(req, res) {
   try {
     const { authKey } = req.user_account;
@@ -357,6 +388,7 @@ app.post('/v2/document/:document_id', auth, handleDocumentStatus);
 app.get('/v2/document/:document_id/result', auth, handleDocumentDownload);
 app.post('/v2/document/:document_id/result', auth, handleDocumentDownload);
 
+app.get('/v2/glossary-language-pairs', auth, handleGlossaryLanguages);
 app.post('/v2/glossaries', auth, handleGlossaryCreate);
 app.get('/v2/glossaries', auth, handleGlossaryList);
 app.get('/v2/glossaries/:glossary_id', auth, handleGlossaryList);
