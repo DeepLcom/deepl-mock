@@ -31,22 +31,21 @@ function convertGlossaryTsvToList(entriesTsv) {
   }
   for (let entryIndex = 0; entryIndex < entries.length; entryIndex += 1) {
     const entryPosition = 0; // TODO Implement calculation of entry positions
-    const entry = entries[entryIndex];
-    const tabPosition = entry.indexOf('\t');
-    if (tabPosition === undefined) {
-      throw new util.HttpError('Invalid glossary entries provided', 400,
-        `Key with the index ${entryIndex} (starting at position ${entryPosition}) misses tab separator`);
+    const entry = entries[entryIndex].trim();
+    if (entry !== '') {
+      const tabPosition = entry.indexOf('\t');
+      if (tabPosition === -1) {
+        throw new util.HttpError('Invalid glossary entries provided', 400,
+          `Key with the index ${entryIndex} (starting at position ${entryPosition}) misses tab separator`);
+      }
+      const source = entry.substr(0, tabPosition);
+      const target = entry.substr(tabPosition + 1);
+      if (findEntry(entryList, source) !== undefined) {
+        throw new util.HttpError('Invalid glossary entries provided', 400,
+          `Key with the index ${entryIndex} (starting at position ${entryPosition}) duplicates key with the index {} (starting at position {})`);
+      }
+      entryList.push({ source, target });
     }
-
-    const source = entry.substr(0, tabPosition);
-    const target = entry.substr(tabPosition + 1);
-
-    // check for duplicate source entries
-    if (findEntry(entryList, source) !== undefined) {
-      throw new util.HttpError('Invalid glossary entries provided', 400,
-        `Key with the index ${entryIndex} (starting at position ${entryPosition}) duplicates key with the index {} (starting at position {})`);
-    }
-    entryList.push({ source, target });
   }
   return entryList;
 }
