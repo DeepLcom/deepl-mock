@@ -145,7 +145,6 @@ function removeGlossary(glossaryId, authKey) {
 
 module.exports = {
   createGlossary,
-  isSupportedLanguagePair,
   isValidGlossaryId,
   getGlossary,
   getGlossaryInfo,
