@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 ### Changed
+* Require a non-empty User-Agent header for all endpoints.
 ### Deprecated
 ### Removed
 ### Fixed

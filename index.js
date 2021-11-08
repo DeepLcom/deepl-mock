@@ -31,6 +31,16 @@ const glossaries = require('./glossaries');
 const languages = require('./languages');
 const util = require('./util');
 
+function requireUserAgent(req, res, next) {
+  const userAgentHeader = req.headers['user-agent'];
+  if (userAgentHeader === undefined || userAgentHeader === '') {
+    res.status(400).send({ message: 'User-Agent header missing.' });
+    return undefined; // Give no response and do not continue with next handler
+  }
+
+  return next();
+}
+
 function getParam(req, name, options) {
   let v = req.body[name] || req.query[name];
 
@@ -371,29 +381,29 @@ async function handleGlossaryDelete(req, res) {
   }
 }
 
-app.get('/v2/languages', auth, handleLanguages);
-app.post('/v2/languages', auth, handleLanguages);
+app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
+app.post('/v2/languages', auth, requireUserAgent, handleLanguages);
 
-app.get('/v2/usage', auth, handleUsage);
-app.post('/v2/usage', auth, handleUsage);
+app.get('/v2/usage', auth, requireUserAgent, handleUsage);
+app.post('/v2/usage', auth, requireUserAgent, handleUsage);
 
-app.get('/v2/translate', auth, handleTranslate);
-app.post('/v2/translate', auth, handleTranslate);
+app.get('/v2/translate', auth, requireUserAgent, handleTranslate);
+app.post('/v2/translate', auth, requireUserAgent, handleTranslate);
 
-app.post('/v2/document', auth, handleDocument);
+app.post('/v2/document', auth, requireUserAgent, handleDocument);
 
-app.get('/v2/document/:document_id', auth, handleDocumentStatus);
-app.post('/v2/document/:document_id', auth, handleDocumentStatus);
+app.get('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
+app.post('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
 
-app.get('/v2/document/:document_id/result', auth, handleDocumentDownload);
-app.post('/v2/document/:document_id/result', auth, handleDocumentDownload);
+app.get('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
+app.post('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
 
-app.get('/v2/glossary-language-pairs', auth, handleGlossaryLanguages);
-app.post('/v2/glossaries', auth, handleGlossaryCreate);
-app.get('/v2/glossaries', auth, handleGlossaryList);
-app.get('/v2/glossaries/:glossary_id', auth, handleGlossaryList);
-app.get('/v2/glossaries/:glossary_id/entries', auth, handleGlossaryEntries);
-app.delete('/v2/glossaries/:glossary_id', auth, handleGlossaryDelete);
+app.get('/v2/glossary-language-pairs', auth, requireUserAgent, handleGlossaryLanguages);
+app.post('/v2/glossaries', auth, requireUserAgent, handleGlossaryCreate);
+app.get('/v2/glossaries', auth, requireUserAgent, handleGlossaryList);
+app.get('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryList);
+app.get('/v2/glossaries/:glossary_id/entries', auth, requireUserAgent, handleGlossaryEntries);
+app.delete('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryDelete);
 
 app.all('/*', (req, res) => {
   res.status(404).send();
