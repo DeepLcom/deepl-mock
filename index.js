@@ -137,11 +137,13 @@ async function handleTranslate(req, res) {
       : glossaries.getGlossary(glossaryId, authKey);
 
     // The following parameters are validated but not used by the mock server
+    getParam(req, 'split_sentences', { default: '1', allowedValues: ['0', '1', 'nonewlines'] });
+    getParam(req, 'preserve_formatting', { default: '0', allowedValues: ['0', '1'] });
     getParam(req, 'formality', {
       default: 'default', allowedValues: ['less', 'more', 'default'],
     });
     getParam(req, 'tag_handling', { default: 'xml', allowedValues: ['xml'] });
-    getParam(req, 'outline_detection', { default: '0', allowedValues: ['0'] });
+    getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1'] });
 
     // Calculate the character count of the requested translation
     const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);
@@ -173,6 +175,9 @@ async function handleDocument(req, res) {
       upper: true, validator: languages.isSourceLanguage,
     });
     const { authKey } = req.user_account;
+    getParam(req, 'formality', {
+      default: 'default', allowedValues: ['less', 'more', 'default'],
+    });
 
     if (!req.files || req.files.file === undefined) {
       res.status(400).send({ message: 'Invalid file data.' });

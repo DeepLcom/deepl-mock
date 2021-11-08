@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+* Add missing argument validation for: formality, split_sentences, preserve_formatting and outline_detection. 
 ### Changed
 * Require a non-empty User-Agent header for all endpoints.
 ### Deprecated
