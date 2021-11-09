@@ -39,7 +39,7 @@ function generateRandomHexString(length) {
   return output;
 }
 
-async function createDocument(file, authKey, targetLang, sourceLang) {
+async function createDocument(file, authKey, targetLang, sourceLang, glossary) {
   const extname = path.extname(file.name).toLowerCase();
 
   if (!(['.txt', '.docx', '.pptx', '.htm', '.html'].includes(extname))) {
@@ -69,6 +69,7 @@ async function createDocument(file, authKey, targetLang, sourceLang) {
     authKey,
     source_lang: sourceLang,
     target_lang: targetLang,
+    glossary,
     // Mock server simplification: billed characters assumed to be file size
     billed_characters: file.size,
     status: 'queued',
@@ -117,7 +118,8 @@ async function translateDocument(document, session) {
     console.log(`Failing translation of ${pathIn}`);
   } else {
     const textIn = fs.readFileSync(pathIn, 'utf8');
-    const textOut = languages.translate(textIn, document.target_lang, document.source_lang);
+    const textOut = languages.translate(textIn, document.target_lang, document.source_lang,
+      document.glossary);
     fs.writeFileSync(pathOut, textOut.text);
     document.path_out = pathOut;
     console.log(`Translated ${pathIn} to ${document.target_lang}, stored result at ${pathOut}`);

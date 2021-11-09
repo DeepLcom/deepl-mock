@@ -179,6 +179,14 @@ async function handleDocument(req, res) {
       default: 'default', allowedValues: ['less', 'more', 'default'],
     });
 
+    const glossaryId = getParam(req, 'glossary_id',
+      { validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)) });
+    if (glossaryId !== undefined && sourceLang === undefined) {
+      throw new util.HttpError('Use of a glossary requires the source_lang parameter to be specified', 400);
+    }
+    const glossary = glossaryId === undefined ? undefined
+      : glossaries.getGlossary(glossaryId, authKey);
+
     if (!req.files || req.files.file === undefined) {
       res.status(400).send({ message: 'Invalid file data.' });
     } else {
@@ -191,7 +199,8 @@ async function handleDocument(req, res) {
                     || !checkLimit(req.user_account.usage, 'team_document', 1)) {
           res.status(456).send({ message: 'Quota for this billing period has been exceeded.' });
         } else {
-          const document = await documents.createDocument(file, authKey, targetLang, sourceLang);
+          const document = await documents.createDocument(file, authKey, targetLang, sourceLang,
+            glossary);
           res.status(200).send({
             document_id: document.id,
             document_key: document.key,
