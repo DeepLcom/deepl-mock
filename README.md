@@ -53,6 +53,12 @@ translation of "proton beam", regardless of the input text.
 Additionally, this mock server cannot auto-detect the source language, unless it matches one of the test phrase
 translations. Otherwise, the source language is assumed to be English.
 
+### Simplified glossaries
+This mock server implements glossaries and translations using glossaries, but translations will only
+make use pf glossary terms if the whole input text (or each line in a document) *exactly* matches a
+glossary term. In contrast, the real DeepL API uses sentence context and language grammar when
+applying glossary terms.
+
 ### User accounts
 This server creates a new user account whenever it receives a request with an unrecognized **auth_key**. To test
 behaviour due to an incorrect key use either an empty key, or the value "invalid". The server removes user accounts
