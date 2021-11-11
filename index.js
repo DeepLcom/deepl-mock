@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 const express = require('express');
+const httpProxy = require('http-proxy');
 
 const app = express();
 app.use(express.json());
@@ -30,6 +31,20 @@ const documents = require('./documents');
 const glossaries = require('./glossaries');
 const languages = require('./languages');
 const util = require('./util');
+
+const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
+const envVarProxyPort = 'DEEPL_MOCK_PROXY_SERVER_PORT';
+
+const port = Number(process.env[envVarPort]);
+const proxyPort = Number(process.env[envVarProxyPort]);
+
+if (Number.isNaN(port)) {
+  console.error(`The ${envVarPort} environment variable must be defined as the port number.`);
+  process.exit(2);
+}
+if (Number.isNaN(proxyPort)) {
+  console.info(`The ${envVarProxyPort} environment variable is not defined, no proxy will be used.`);
+}
 
 function requireUserAgent(req, res, next) {
   const userAgentHeader = req.headers['user-agent'];
@@ -423,16 +438,24 @@ app.all('/*', (req, res) => {
   res.status(404).send();
 });
 
-const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
-const port = Number(process.env[envVarPort]);
-if (Number.isNaN(port)) {
-  console.error(`The ${envVarPort} environment variable must be defined as the port number.`);
-  process.exit(2);
-}
-
-app.listen(port, () => {
+app.listen(port, 'localhost', () => {
   console.log(`DeepL API mock-server listening at http://localhost:${port}`);
 }).on('error', (error) => {
   console.error(`Error occurred while starting the server: ${error}`);
   process.exit(1);
 });
+
+if (!Number.isNaN(proxyPort)) {
+  const proxyApp = express();
+  const proxy = httpProxy.createProxyServer({});
+  proxyApp.all('*', (req, res) => {
+    console.log('Proxying request:', req.method, req.url);
+    req.headers.forwarded = `for=${req.ip}`;
+    proxy.web(req, res, { target: `http://localhost:${port}` }, (err) => {
+      console.log('Error while proxying request:', err);
+    });
+  });
+  proxyApp.listen(proxyPort, 'localhost', () => {
+    console.log(`DeepL API mock-proxy-server listening at http://localhost:${proxyPort}`);
+  });
+}

@@ -1,7 +1,7 @@
 # DeepL API mock server
 A mock server that simulates some behaviour of the
 [DeepL API](https://www.deepl.com/docs-api?utm_source=github&utm_medium=github-deepl-mock-readme) to simplify application
-testing.
+testing. In addition, a proxy server is included to test proxy usage.
 
 ## Installation
 This server uses Node.js. After [installing Node.js](https://nodejs.dev/learn/how-to-install-nodejs), install the
@@ -20,6 +20,8 @@ The **DEEPL_MOCK_SERVER_PORT** environment variable may be used to specify a dif
 export DEEPL_MOCK_SERVER_PORT=3001
 node index.js
 ```
+The proxy server listens on port 3001 by default; this may be changed using the
+**DEEPL_MOCK_PROXY_SERVER_PORT** environment variable.
 
 ## Server configuration via HTTP-request header
 The HTTP-request header **mock-server-session** may be sent with any request, containing a unique string identifying the
@@ -42,6 +44,7 @@ The server removes sessions after 10 minutes of inactivity.
 |mock-server-session-init-team-document-limit|Integer|Specifies the team document limit for user accounts created in this session. Default: no limit.|
 |mock-server-session-doc-queue-time|Integer|Specifies the time in milliseconds that documents are queued before being translated.|
 |mock-server-session-doc-translate-time|Integer|Specifies the time in milliseconds that documents take to translate.|
+|mock-server-session-expect-proxy|Integer|If non-zero, only requests via the proxy server are accepted. Requests are considered to come via proxy if the Forwarded HTTP header is included.|
 
 ## Limitations compared with the DeepL API
 ### Limited translation

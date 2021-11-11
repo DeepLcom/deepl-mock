@@ -21,6 +21,7 @@ function createSession(headers) {
     init_team_doc_limit: 'mock-server-session-init-team-document-limit',
     doc_queue_time: 'mock-server-session-doc-queue-time',
     doc_translate_time: 'mock-server-session-doc-translate-time',
+    expect_proxy: 'mock-server-session-expect-proxy',
   };
 
   // eslint-disable-next-line guard-for-in,no-restricted-syntax
@@ -61,6 +62,14 @@ module.exports = () => (req, res, next) => {
   if (req.session.no_response_count > 0) {
     req.session.no_response_count -= 1;
     return undefined; // Give no response and do not continue with next handler
+  }
+
+  if (req.session.expect_proxy) {
+    if (req.headers.forwarded === undefined) {
+      console.log('Expected a request via proxy.');
+      res.status(400).send({ message: 'Expected a request via proxy.' });
+      return undefined; // Do not continue with next handler
+    }
   }
 
   return next();

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Add glossary support for document translation. 
 * Add missing argument validation for: formality, split_sentences, preserve_formatting and outline_detection.
+* Add an optional proxy server that proxies requests to the mock server, listening on port 3001 by
+  default.
+* Add `expect-proxy` session variable to reject requests not via proxy, as determined by presence of
+  the `Forwarded` header.
 ### Changed
 * Require a non-empty User-Agent header for all endpoints.
 ### Deprecated
