@@ -1,15 +1,51 @@
-image: node:latest
+image: node:14
 
 cache:
   paths:
     - node_modules/
 
 stages:
-  - quality
+  - check
+  - build
+  - test
+  - publish
+
+# stage: check ----------------------
 
 eslint:
-  stage: quality
+  stage: check
   script:
     - npm install
     - npm run lint
 
+# stage: build ----------------------
+
+build docker image:
+  image: docker:latest
+  stage: build
+  dependencies:
+    - "eslint" # For cache
+  script:
+    - docker image build -t $DOCKER_REGISTRY/deepl/deepl-mock .
+    - docker image build -t deepl/deepl-mock .
+
+# stage: test ----------------------
+
+dummy test:
+  image: docker:latest
+  stage: test
+  script:
+    - docker run -d --rm --name deepl-mock -p3000:3000 -p3001:3001 $DOCKER_REGISTRY/deepl/deepl-mock
+    - node test/smoke_test.js || true
+  after_script:
+    - docker stop deepl-mock
+
+# stage: publish ----------------------
+
+publish latest to internal repository:
+  image: docker:latest
+  stage: publish
+  dependencies:
+    - "build docker image"
+  script:
+    - docker image push $DOCKER_REGISTRY/deepl/deepl-mock

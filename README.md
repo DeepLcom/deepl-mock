@@ -3,25 +3,58 @@ A mock server that simulates some behaviour of the
 [DeepL API](https://www.deepl.com/docs-api?utm_source=github&utm_medium=github-deepl-mock-readme) to simplify application
 testing. In addition, a proxy server is included to test proxy usage.
 
-## Installation
-This server uses Node.js. After [installing Node.js](https://nodejs.dev/learn/how-to-install-nodejs), install the
-required packages using [NPM](https://www.npmjs.com/):
+## Usage
+
+The server listens on two ports: the main port (by default: 3000) imitates the DeepL API, and the
+proxy port (by default: 3001) implements a basic proxy server.   
+
+### Using Docker
+
+With Docker, no other software needs to be installed. Build a Docker image using the provided Dockerfile:
 ```shell
-npm install
+docker image build -t deepl/deepl-mock .
 ```
 
-## Usage
-To run the server listening on the default port (3000):
+Run a Docker container using the image, exposing ports 3000 and 3001:
 ```shell
+docker run -d --rm --name deepl-mock -p3000:3000 -p3001:3001 deepl/deepl-mock
+```
+
+If you are executing unit tests of an official DeepL client library (for example
+[deepl-python](https://github.com/DeepLcom/deepl-python)
+or [deepl-dotnet](https://github.com/DeepLcom/deepl-dotnet)), define the following
+environment variables before executing the tests:
+```shell
+export DEEPL_MOCK_SERVER_PORT=3000
+export DEEPL_MOCK_PROXY_SERVER_PORT=3001
+export DEEPL_SERVER_URL=http://localhost:3000
+export DEEPL_PROXY_URL=http://localhost:3001
+
+# Execute tests -- see the corresponding client library documentation
+...
+```
+
+When finished, stop the Docker container:
+```shell
+docker stop deepl/deepl-mock
+```
+
+### Manually
+
+You can also run the server manually without using Docker.
+[Install Node.js](https://nodejs.dev/learn/how-to-install-nodejs) and install the required packages
+using [NPM](https://www.npmjs.com/): `npm install`, and run the server using `npm start`.
+
+By default, the mock server listens on ports 3000 (main API) and 3001 (basic proxy). Define the
+**DEEPL_MOCK_SERVER_PORT** and **DEEPL_MOCK_PROXY_SERVER_PORT** environment variables to change this
+behaviour:
+```shell
+export DEEPL_MOCK_SERVER_PORT=4000
+export DEEPL_MOCK_PROXY_SERVER_PORT=4001
 npm start
 ```
-The **DEEPL_MOCK_SERVER_PORT** environment variable may be used to specify a different port:
-```shell
-export DEEPL_MOCK_SERVER_PORT=3001
-node index.js
-```
-The proxy server listens on port 3001 by default; this may be changed using the
-**DEEPL_MOCK_PROXY_SERVER_PORT** environment variable.
+If you are executing unit tests of an official DeepL client library the **DEEPL_SERVER_URL** and
+**DEEPL_PROXY_URL** environment variables should also be updated.
 
 ## Server configuration via HTTP-request header
 The HTTP-request header **mock-server-session** may be sent with any request, containing a unique string identifying the
