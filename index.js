@@ -438,8 +438,8 @@ app.all('/*', (req, res) => {
   res.status(404).send();
 });
 
-app.listen(port, 'localhost', () => {
-  console.log(`DeepL API mock-server listening at http://localhost:${port}`);
+app.listen(port, () => {
+  console.log(`DeepL API mock-server listening on port ${port}`);
 }).on('error', (error) => {
   console.error(`Error occurred while starting the server: ${error}`);
   process.exit(1);
@@ -455,7 +455,7 @@ if (!Number.isNaN(proxyPort)) {
       console.log('Error while proxying request:', err);
     });
   });
-  proxyApp.listen(proxyPort, 'localhost', () => {
-    console.log(`DeepL API mock-proxy-server listening at http://localhost:${proxyPort}`);
+  proxyApp.listen(proxyPort, () => {
+    console.log(`DeepL API mock-proxy-server listening on port ${proxyPort}`);
   });
 }
