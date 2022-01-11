@@ -78,5 +78,9 @@ This mock server uses simplified calculations to update account usage.
 This mock server does not implement these features, however the API input parameters are validated.
 
 ## Issues
-If you experience problems using the library, or would like to request a new feature, please create an 
+If you experience problems using the library, or would like to request a new feature, please open an
 [issue](https://www.github.com/DeepLcom/deepl-mock/issues). 
+
+## Development
+
+We are currently unable to accept Pull Requests. If you would like to suggest changes, please open an issue instead.
