@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Add contribution guidelines -- currently we are unable to accept Pull Requests.
 ### Changed
+* npm start command now uses environment variables if defined for DEEPL_MOCK_SERVER_PORT and 
+  DEEPL_MOCK_PROXY_SERVER_PORT.
 ### Deprecated
 ### Removed
 ### Fixed
