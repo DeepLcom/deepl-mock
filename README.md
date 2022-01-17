@@ -3,6 +3,9 @@ A mock server that simulates some behaviour of the
 [DeepL API](https://www.deepl.com/docs-api?utm_source=github&utm_medium=github-deepl-mock-readme) to simplify application
 testing. In addition, a proxy server is included to test proxy usage.
 
+Note: this server is intended for testing, not for use in production, and it might not receive
+regular security updates. 
+
 ## Usage
 
 The server listens on two ports: the main port (by default: 3000) imitates the DeepL API, and the
@@ -41,9 +44,13 @@ docker stop deepl/deepl-mock
 
 ### Manually
 
-You can also run the server manually without using Docker.
-[Install Node.js](https://nodejs.dev/learn/how-to-install-nodejs) and install the required packages
-using [NPM](https://www.npmjs.com/): `npm install`, and run the server using `npm start`.
+You can also run the server manually without using Docker. First install
+[Node.js](https://nodejs.dev/learn/how-to-install-nodejs), then proceed using `npm`:
+```shell
+npm install     # Install required packages
+npm audit       # Check for security updates
+npm start       # Run the mock server
+```
 
 By default, the mock server listens on ports 3000 (main API) and 3001 (basic proxy). Define the
 **DEEPL_MOCK_SERVER_PORT** and **DEEPL_MOCK_PROXY_SERVER_PORT** environment variables to change this

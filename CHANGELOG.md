@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 * npm start command now uses environment variables if defined for DEEPL_MOCK_SERVER_PORT and 
   DEEPL_MOCK_PROXY_SERVER_PORT.
+* Update `package-lock.json`: upgrade `follow-redirects` to 1.14.7 to silence security warnings. 
+  Note: security vulnerability [CVE-2022-0155](https://nvd.nist.gov/vuln/detail/CVE-2022-0155)
+  affects cross-domain proxying and has no impact here because the proxy server is restricted to
+  target only the mock server itself.   
 ### Deprecated
 ### Removed
 ### Fixed
