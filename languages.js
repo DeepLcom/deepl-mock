@@ -69,6 +69,12 @@ function isGlossaryLanguage(langCode) {
   return ['EN', 'DE', 'FR', 'ES'].includes(langCodeUpper);
 }
 
+function supportsFormality(langCode) {
+  if (langCode === undefined) return false;
+  const langCodeUpper = langCode.toUpperCase();
+  return languages.has(langCodeUpper) && languages.get(langCodeUpper).formality !== undefined;
+}
+
 function getSourceLanguages() {
   const sourceLanguages = [];
   languages.forEach((lang, code) => {
@@ -138,6 +144,7 @@ module.exports = {
   isSourceLanguage,
   getSourceLanguages,
   isTargetLanguage,
+  supportsFormality,
   getTargetLanguages,
   translate,
 };

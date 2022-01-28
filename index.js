@@ -75,7 +75,9 @@ function getParam(req, name, options) {
     if (options?.required && v === undefined) {
       if (options?.newErrorMessage) throw new util.HttpError(`Missing or invalid argument: ${name}'`);
       throw new util.HttpError(`Parameter '${name}' not specified`);
-    } else if (v === undefined) v = options?.default;
+    } else if (v === undefined && options?.default !== undefined) {
+      return options?.default;
+    }
 
     if (options?.lower && v) v = v.toLowerCase();
     else if (options?.upper && v) v = v.toUpperCase();
@@ -155,7 +157,13 @@ async function handleTranslate(req, res) {
     getParam(req, 'split_sentences', { default: '1', allowedValues: ['0', '1', 'nonewlines'] });
     getParam(req, 'preserve_formatting', { default: '0', allowedValues: ['0', '1'] });
     getParam(req, 'formality', {
-      default: 'default', allowedValues: ['less', 'more', 'default'],
+      default: 'default',
+      allowedValues: ['less', 'more', 'default'],
+      validator: () => {
+        if (!languages.supportsFormality(targetLang)) {
+          throw new util.HttpError("'formality' is not supported for given 'target_lang'.", 400);
+        }
+      },
     });
     getParam(req, 'tag_handling', { default: 'xml', allowedValues: ['html', 'xml'] });
     getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1'] });
@@ -191,7 +199,13 @@ async function handleDocument(req, res) {
     });
     const { authKey } = req.user_account;
     getParam(req, 'formality', {
-      default: 'default', allowedValues: ['less', 'more', 'default'],
+      default: 'default',
+      allowedValues: ['less', 'more', 'default'],
+      validator: () => {
+        if (!languages.supportsFormality(targetLang)) {
+          throw new util.HttpError('formality is not supported for given target_lang.', 400);
+        }
+      },
     });
 
     const glossaryId = getParam(req, 'glossary_id',
