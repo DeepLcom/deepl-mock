@@ -157,7 +157,7 @@ async function handleTranslate(req, res) {
     getParam(req, 'formality', {
       default: 'default', allowedValues: ['less', 'more', 'default'],
     });
-    getParam(req, 'tag_handling', { default: 'xml', allowedValues: ['xml'] });
+    getParam(req, 'tag_handling', { default: 'xml', allowedValues: ['html', 'xml'] });
     getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1'] });
 
     // Calculate the character count of the requested translation
