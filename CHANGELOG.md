@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Fixed
 * Raise request body size limits to 50 MiB.
+* Fix error response message when attempting to download a document before it has been translated.
 ### Security
 
 

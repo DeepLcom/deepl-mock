@@ -282,7 +282,7 @@ async function handleDocumentDownload(req, res) {
       req.session);
 
     if (document.status !== 'done') {
-      res.status(503).send();
+      res.status(503).send({ message: 'Document translation is not done' });
     } else {
       res.status(200);
       res.download(document.path_out, document.name, (err) => {
