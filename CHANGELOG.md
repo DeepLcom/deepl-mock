@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Add support for `tag_handling=html`.
 * `formality` parameter is checked against `target_lang`.
 ### Changed
+* Update `package-lock.json`: upgrade `follow-redirects` to 1.14.9 to silence security warnings.
+  Note: security vulnerability [CVE-2022-0536](https://nvd.nist.gov/vuln/detail/CVE-2022-0536)
+  affects cross-domain proxying and has no impact here because the proxy server is restricted to
+  target only the mock server itself.
 ### Deprecated
 ### Removed
 ### Fixed
