@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [1.3.2] - 2022-03-01
 ### Added
 * Add support for `tag_handling=html`.
 * `formality` parameter is checked against `target_lang`.
@@ -14,12 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Note: security vulnerability [CVE-2022-0536](https://nvd.nist.gov/vuln/detail/CVE-2022-0536)
   affects cross-domain proxying and has no impact here because the proxy server is restricted to
   target only the mock server itself.
-### Deprecated
-### Removed
 ### Fixed
 * Raise request body size limits to 50 MiB.
 * Fix error response message when attempting to download a document before it has been translated.
-### Security
 
 
 ## [1.3.1] - 2022-01-21
@@ -88,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial version.
 
 
-[Unreleased]: https://github.com/DeepLcom/deepl-mock/compare/v1.3.1...HEAD
+[1.3.2]: https://github.com/DeepLcom/deepl-mock/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/DeepLcom/deepl-mock/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/DeepLcom/deepl-mock/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/DeepLcom/deepl-mock/compare/v1.1.0...v1.2.0
