@@ -32,13 +32,13 @@ build docker image:
 # stage: test ----------------------
 
 dummy test:
-  image: docker:latest
   stage: test
   script:
-    - docker run -d --rm --name deepl-mock -p3000:3000 -p3001:3001 $DOCKER_REGISTRY/deepl/deepl-mock
-    - node test/smoke_test.js || true
-  after_script:
-    - docker stop deepl-mock
+    - export DEEPL_MOCK_SERVER_PORT=3000
+    - export DEEPL_MOCK_PROXY_SERVER_PORT=3001
+    - node index.js &
+    - sleep 1
+    - node test/smoke_test.js
 
 # stage: publish ----------------------
 
