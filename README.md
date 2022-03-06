@@ -39,7 +39,7 @@ export DEEPL_PROXY_URL=http://localhost:3001
 
 When finished, stop the Docker container:
 ```shell
-docker stop deepl/deepl-mock
+docker stop deepl-mock
 ```
 
 ### Manually
