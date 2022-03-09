@@ -48,6 +48,9 @@ async function createDocument(file, authKey, targetLang, sourceLang, glossary) {
   if (extname !== '.txt') {
     throw new util.HttpError('Mock server only implements document translation for .txt files.', 503);
   }
+  if (targetLang === sourceLang) {
+    throw new util.HttpError('Source and target language are equal.', 400);
+  }
 
   // Generate id & key for document
   const documentId = generateRandomHexString(32);
@@ -90,6 +93,7 @@ function getDocument(documentId, documentKey, authKey, session) {
     const age = document.used - document.created;
     if (document.error) {
       document.status = 'error';
+      document.error_message = document.error;
     } else if (age < queuedUntil) {
       document.status = 'queued';
     } else if (age < translatingUntil || document.path_out === undefined) {
@@ -109,7 +113,7 @@ async function translateDocument(document, session) {
   /* eslint-disable no-param-reassign */
   // Note: this function may modify the document and session arguments
   //   session failed document will be checked and decremented if active.
-  //   document will modified with the translation result.
+  //   document will be modified with the translation result.
   const { pathIn } = document;
   const pathOut = `${pathIn}.result`;
   if (session?.doc_failure > 0) {
@@ -118,11 +122,17 @@ async function translateDocument(document, session) {
     console.log(`Failing translation of ${pathIn}`);
   } else {
     const textIn = fs.readFileSync(pathIn, 'utf8');
-    const textOut = languages.translate(textIn, document.target_lang, document.source_lang,
+    const translateResult = languages.translate(textIn, document.target_lang, document.source_lang,
       document.glossary);
-    fs.writeFileSync(pathOut, textOut.text);
-    document.path_out = pathOut;
-    console.log(`Translated ${pathIn} to ${document.target_lang}, stored result at ${pathOut}`);
+    const detectedSourceLang = translateResult.detected_source_language;
+    if (document.target_lang === detectedSourceLang) {
+      document.error = 'Source and target language are equal.';
+      console.log(`Error translating ${pathIn} to ${document.target_lang}: ${document.error}`);
+    } else {
+      fs.writeFileSync(pathOut, translateResult.text);
+      document.path_out = pathOut;
+      console.log(`Translated ${pathIn} to ${document.target_lang}, stored result at ${pathOut}`);
+    }
   }
   console.log(`Removing input document ${pathIn}`);
   deleteFile(pathIn);

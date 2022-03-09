@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+### Added
+* Add `error_message` field to document status if an error occurs during document translation fails,
+  and check if detected source language matches target language. The deprecated `message` field is
+  also added to match the live API. 
+
+
 ## [1.3.2] - 2022-03-01
 ### Added
 * Add support for `tag_handling=html`.
@@ -85,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial version.
 
 
+[Unreleased]: https://github.com/DeepLcom/deepl-mock/compare/v1.3.2...HEAD
 [1.3.2]: https://github.com/DeepLcom/deepl-mock/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/DeepLcom/deepl-mock/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/DeepLcom/deepl-mock/compare/v1.2.0...v1.3.0

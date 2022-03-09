@@ -265,6 +265,10 @@ async function handleDocumentStatus(req, res) {
     } else if (document.status === 'done') {
       body.seconds_remaining = document.seconds_remaining;
       body.billed_characters = document.billed_characters;
+    } else if (document.status === 'error') {
+      body.error_message = document.error_message;
+      // Field 'message' is also set for backward compatibility
+      body.message = document.error_message;
     }
 
     res.status(200).send(body);
