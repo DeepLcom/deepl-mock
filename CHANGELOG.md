@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Add `error_message` field to document status if an error occurs during document translation fails,
   and check if detected source language matches target language. The deprecated `message` field is
   also added to match the live API. 
+### Changed
+* Update name for the target language `zh` to "Chinese (simplified)". 
 
 
 ## [1.3.2] - 2022-03-01

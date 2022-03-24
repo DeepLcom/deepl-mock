@@ -48,7 +48,9 @@ const languages = new Map([
   ['SK', { name: 'Slovak', type: 'both', text: 'protónový lúč' }],
   ['SL', { name: 'Slovenian', type: 'both', text: 'protonski žarek' }],
   ['SV', { name: 'Swedish', type: 'both', text: 'protonstråle' }],
-  ['ZH', { name: 'Chinese', type: 'both', text: '质子束' }],
+  ['ZH', {
+    source_name: 'Chinese', target_name: 'Chinese (simplified)', type: 'both', text: '质子束',
+  }],
 ]);
 
 function isSourceLanguage(langCode) {
@@ -81,7 +83,7 @@ function getSourceLanguages() {
     if (['source', 'both'].includes(lang.type)) {
       sourceLanguages.push({
         language: code,
-        name: lang.name,
+        name: lang.source_name ?? lang.name,
       });
     }
   });
@@ -94,7 +96,7 @@ function getTargetLanguages() {
     if (['target', 'both'].includes(lang.type)) {
       targetLanguages.push({
         language: code,
-        name: lang.name,
+        name: lang.target_name ?? lang.name,
         supports_formality: Boolean(lang.formality),
       });
     }
