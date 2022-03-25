@@ -98,7 +98,7 @@ translations. Otherwise, the source language is assumed to be English.
 
 ### Simplified glossaries
 This mock server implements glossaries and translations using glossaries, but translations will only
-make use pf glossary terms if the whole input text (or each line in a document) *exactly* matches a
+make use of glossary terms if the whole input text (or each line in a document) *exactly* matches a
 glossary term. In contrast, the real DeepL API uses sentence context and language grammar when
 applying glossary terms.
 
@@ -108,8 +108,8 @@ behaviour due to an incorrect key use either an empty key, or the value "invalid
 after 10 minutes of inactivity.
 
 ### Only .txt files
-This mock server only supports .txt files for document translation. The DeepL API additionally supports .docx, .pptx
-and .html/.htm files. The server removes documents after 10 minutes of inactivity.
+This mock server only supports .txt files for document translation. The DeepL API additionally supports .docx, .pptx,
+.pdf and .html/.htm files. The server removes documents after 10 minutes of inactivity.
 
 ### Account usage
 This mock server uses simplified calculations to update account usage. 
