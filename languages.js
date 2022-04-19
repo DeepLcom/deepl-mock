@@ -22,6 +22,7 @@ const languages = new Map([
     name: 'French', type: 'both', formality: true, text: 'faisceau de protons',
   }],
   ['HU', { name: 'Hungarian', type: 'both', text: 'protonnyaláb' }],
+  ['ID', { name: 'Indonesian', type: 'both', text: 'berkas proton' }],
   ['IT', {
     name: 'Italian', type: 'both', formality: true, text: 'fascio di protoni',
   }],
@@ -48,6 +49,7 @@ const languages = new Map([
   ['SK', { name: 'Slovak', type: 'both', text: 'protónový lúč' }],
   ['SL', { name: 'Slovenian', type: 'both', text: 'protonski žarek' }],
   ['SV', { name: 'Swedish', type: 'both', text: 'protonstråle' }],
+  ['TR', { name: 'Turkish', type: 'both', text: 'proton ışını' }],
   ['ZH', {
     source_name: 'Chinese', target_name: 'Chinese (simplified)', type: 'both', text: '质子束',
   }],
