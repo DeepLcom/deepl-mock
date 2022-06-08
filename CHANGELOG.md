@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 * Update contributing guidelines, we can now accept Pull Requests.
+* Update `package-lock.json`: remove `dicer` 0.3.0 from indirect dependencies.
 
 
 ## [1.5.0] - 2022-05-18
