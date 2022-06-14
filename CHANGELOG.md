@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 * Update contributing guidelines, we can now accept Pull Requests.
 * Update `package-lock.json`: remove `dicer` 0.3.0 from indirect dependencies.
+### Fixed
+* Fix an incorrect docker command in the readme.
+  * Pull request [#2](https://github.com/DeepLcom/deepl-mock/pull/2)
+    thanks to [qyanu](https://github.com/qyanu).
 
 
 ## [1.5.0] - 2022-05-18
