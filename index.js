@@ -393,17 +393,17 @@ async function handleGlossaryCreate(req, res) {
       newErrorMessage: true,
       validator: (value) => value.length !== 0,
     });
-    const entriesTsv = getParam(req, 'entries', { required: true });
-    getParam(req, 'entries_format', {
+    const entries = getParam(req, 'entries', { required: true });
+    const entriesFormat = getParam(req, 'entries_format', {
       required: true,
       validator: (value) => {
-        if (value !== 'tsv') {
+        if (value !== 'tsv' && value !== 'csv') {
           throw new util.HttpError('Unsupported entry format specified', 401);
         }
       },
     });
-    const glossaryInfo = glossaries.createGlossary(name, authKey, targetLang, sourceLang,
-      entriesTsv);
+    const glossaryInfo = await glossaries.createGlossary(name, authKey, targetLang, sourceLang,
+      entriesFormat, entries);
     res.status(201).send(glossaryInfo);
   } catch (err) {
     console.log(err.message);

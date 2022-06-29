@@ -3,6 +3,8 @@
 // license that can be found in the LICENSE file.
 
 const uuid = require('uuid');
+const csvParser = require('csv-parser');
+const { Readable } = require('stream');
 const util = require('./util');
 
 const glossaries = new Map();
@@ -50,6 +52,38 @@ function convertGlossaryTsvToList(entriesTsv) {
   return entryList;
 }
 
+function convertGlossaryCsvToList(entriesCsv, glossarySourceLang, glossaryTargetLang) {
+  if (entriesCsv.length === 0) {
+    throw new util.HttpError('Bad request', 400, 'Missing or invalid argument: entries');
+  }
+
+  return new Promise(((resolve, reject) => {
+    const readable = Readable.from([entriesCsv]);
+    const results = [];
+    readable.pipe(csvParser({ headers: false }))
+      .on('data', (data) => {
+        const sourceEntry = data[0];
+        const targetEntry = data[1];
+        const sourceLang = data[2];
+        const targetLang = data[3];
+        // Ignore empty lines
+        if (sourceEntry === undefined || targetEntry === undefined) return;
+        // Ignore lines where the source lang or target lang do not match glossary lang
+        if (sourceLang !== undefined && targetLang !== undefined
+            && sourceLang.toUpperCase() !== glossarySourceLang
+            && targetLang.toUpperCase() !== glossaryTargetLang) return;
+        results.push({ source: sourceEntry, target: targetEntry });
+      })
+      .on('end', () => {
+        if (results.length === 0) {
+          return reject(new util.HttpError('Invalid glossary entries provided', 400));
+        }
+        return resolve(results);
+      })
+      .on('error', (err) => reject(err));
+  }));
+}
+
 function extractGlossaryInfo(glossary) {
   return {
     glossary_id: glossary.glossaryId,
@@ -81,12 +115,17 @@ function translateWithGlossary(entryList, input) {
   return null;
 }
 
-function createGlossary(name, authKey, targetLang, sourceLang, entriesTsv) {
+async function createGlossary(name, authKey, targetLang, sourceLang, entriesFormat, entries) {
   if (!isSupportedLanguagePair(sourceLang, targetLang)) {
     throw new util.HttpError('Unsupported glossary source and target language pair', 400);
   }
 
-  const entryList = convertGlossaryTsvToList(entriesTsv);
+  let entryList;
+  if (entriesFormat === 'tsv') {
+    entryList = convertGlossaryTsvToList(entries);
+  } else {
+    entryList = await convertGlossaryCsvToList(entries, sourceLang, targetLang);
+  }
   const glossaryId = uuid.v1();
 
   // Add glossary to list

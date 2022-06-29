@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
+### Added
+* Add support for glossary creation using CSV format.
 ### Changed
 * Update contributing guidelines, we can now accept Pull Requests.
 * Update `package-lock.json`: remove `dicer` 0.3.0 from indirect dependencies.
