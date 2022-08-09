@@ -1,4 +1,4 @@
 include:
-  - project: 'deepl/backend/ci-libs-for-client-libraries'
+  - project: '${CI_PROJECT_NAMESPACE}/ci-libs-for-client-libraries'
     file:
       - '/deepl-mock/.gitlab-ci.yml'
