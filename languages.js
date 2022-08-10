@@ -69,6 +69,7 @@ function isTargetLanguage(langCode) {
 }
 
 function isGlossaryLanguage(langCode) {
+  if (langCode === undefined) return false;
   const langCodeUpper = langCode.toUpperCase();
   return ['EN', 'DE', 'FR', 'ES'].includes(langCodeUpper);
 }
