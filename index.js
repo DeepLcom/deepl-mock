@@ -158,9 +158,9 @@ async function handleTranslate(req, res) {
     getParam(req, 'preserve_formatting', { default: '0', allowedValues: ['0', '1'] });
     getParam(req, 'formality', {
       default: 'default',
-      allowedValues: ['less', 'more', 'default'],
-      validator: () => {
-        if (!languages.supportsFormality(targetLang)) {
+      allowedValues: ['less', 'more', 'default', 'prefer_less', 'prefer_more'],
+      validator: (formality) => {
+        if (!languages.supportsFormality(targetLang) && !formality.startsWith('prefer_')) {
           throw new util.HttpError("'formality' is not supported for given 'target_lang'.", 400);
         }
       },
@@ -200,9 +200,9 @@ async function handleDocument(req, res) {
     const { authKey } = req.user_account;
     getParam(req, 'formality', {
       default: 'default',
-      allowedValues: ['less', 'more', 'default'],
-      validator: () => {
-        if (!languages.supportsFormality(targetLang)) {
+      allowedValues: ['less', 'more', 'default', 'prefer_less', 'prefer_more'],
+      validator: (formality) => {
+        if (!languages.supportsFormality(targetLang) && !formality.startsWith('prefer_')) {
           throw new util.HttpError('formality is not supported for given target_lang.', 400);
         }
       },
