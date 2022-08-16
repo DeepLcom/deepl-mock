@@ -97,7 +97,7 @@ function extractGlossaryInfo(glossary) {
 }
 
 function isSupportedLanguagePair(sourceLang, targetLang) {
-  const supportedLanguages = ['EN>DE', 'EN>FR', 'EN>ES', 'DE>EN', 'ES>EN', 'FR>EN'];
+  const supportedLanguages = ['EN>DE', 'EN>FR', 'EN>ES', 'DE>EN', 'DE>FR', 'ES>EN', 'FR>DE', 'FR>EN'];
   return supportedLanguages.includes(`${sourceLang}>${targetLang}`);
 }
 
