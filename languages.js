@@ -50,6 +50,7 @@ const languages = new Map([
   ['SL', { name: 'Slovenian', type: 'both', text: 'protonski žarek' }],
   ['SV', { name: 'Swedish', type: 'both', text: 'protonstråle' }],
   ['TR', { name: 'Turkish', type: 'both', text: 'proton ışını' }],
+  ['UK', { name: 'Ukrainian', type: 'both', text: 'протонний пучок' }],
   ['ZH', {
     source_name: 'Chinese', target_name: 'Chinese (simplified)', type: 'both', text: '质子束',
   }],
