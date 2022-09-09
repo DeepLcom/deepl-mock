@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-* Add German <-> French to list of supported glossary language pairs.
+* Add to supported glossary language pairs:
+  - German <-> French
+  - English <-> Italian
+  - English <-> Japanese
+  - English <-> Polish
 * Add new language Ukrainian (`'UK'`).
 ### Fixed
 * Fix bug with missing `target_lang` or `source_lang` in glossary create.

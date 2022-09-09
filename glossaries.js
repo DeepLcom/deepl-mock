@@ -12,6 +12,22 @@ util.scheduleCleanup(glossaries, (glossary, glossaryId) => {
   console.log(`Removing glossary "${glossary.name}" (${glossaryId})`);
 });
 
+const supportedLanguages = [
+  { source_lang: 'de', target_lang: 'en' },
+  { source_lang: 'de', target_lang: 'fr' },
+  { source_lang: 'en', target_lang: 'de' },
+  { source_lang: 'en', target_lang: 'es' },
+  { source_lang: 'en', target_lang: 'fr' },
+  { source_lang: 'en', target_lang: 'ja' },
+  { source_lang: 'en', target_lang: 'it' },
+  { source_lang: 'en', target_lang: 'pl' },
+  { source_lang: 'es', target_lang: 'en' },
+  { source_lang: 'fr', target_lang: 'de' },
+  { source_lang: 'fr', target_lang: 'en' },
+  { source_lang: 'ja', target_lang: 'en' },
+  { source_lang: 'it', target_lang: 'en' },
+  { source_lang: 'pl', target_lang: 'en' }];
+
 function findEntry(entryList, sourceEntry) {
   for (let i = 0; i < entryList.length; i += 1) {
     if (entryList[i].source === sourceEntry) {
@@ -97,8 +113,10 @@ function extractGlossaryInfo(glossary) {
 }
 
 function isSupportedLanguagePair(sourceLang, targetLang) {
-  const supportedLanguages = ['EN>DE', 'EN>FR', 'EN>ES', 'DE>EN', 'DE>FR', 'ES>EN', 'FR>DE', 'FR>EN'];
-  return supportedLanguages.includes(`${sourceLang}>${targetLang}`);
+  const matchingLanguagesCount = supportedLanguages.filter(
+    (glossary) => glossary.source_lang === sourceLang && glossary.target_lang === targetLang,
+  ).length;
+  return (matchingLanguagesCount > 0);
 }
 
 function isValidGlossaryId(glossaryId) {
@@ -190,4 +208,5 @@ module.exports = {
   getGlossaryInfoList,
   getGlossaryEntries,
   removeGlossary,
+  supportedLanguages,
 };

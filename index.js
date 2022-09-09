@@ -351,25 +351,7 @@ function handleGlossaryLanguages(req, res) {
   try {
     res.status(200).send(
       {
-        supported_languages: [{
-          source_lang: 'de',
-          target_lang: 'en',
-        }, {
-          source_lang: 'en',
-          target_lang: 'de',
-        }, {
-          source_lang: 'en',
-          target_lang: 'es',
-        }, {
-          source_lang: 'en',
-          target_lang: 'fr',
-        }, {
-          source_lang: 'es',
-          target_lang: 'en',
-        }, {
-          source_lang: 'fr',
-          target_lang: 'en',
-        }],
+        supported_languages: glossaries.supportedLanguages,
       },
     );
   } catch (err) {
