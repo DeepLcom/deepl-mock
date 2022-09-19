@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 * Add `formality` options: `prefer_less` and `prefer_more`
+### Fixed
+* Glossary language codes are case-insensitive.
 
 
 ## [1.7.0] - 2022-09-09

@@ -114,7 +114,8 @@ function extractGlossaryInfo(glossary) {
 
 function isSupportedLanguagePair(sourceLang, targetLang) {
   const matchingLanguagesCount = supportedLanguages.filter(
-    (glossary) => glossary.source_lang === sourceLang && glossary.target_lang === targetLang,
+    (glossary) => glossary.source_lang.toUpperCase() === sourceLang
+        && glossary.target_lang.toUpperCase() === targetLang,
   ).length;
   return (matchingLanguagesCount > 0);
 }
