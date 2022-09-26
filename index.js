@@ -107,6 +107,16 @@ function getParamFormality(req, targetLang) {
   });
 }
 
+function getParamGlossary(req, sourceLang) {
+  const { authKey } = req.user_account;
+  const glossaryId = getParam(req, 'glossary_id',
+    { validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)) });
+  if (glossaryId !== undefined && sourceLang === undefined) {
+    throw new util.HttpError('Use of a glossary requires the source_lang parameter to be specified', 400);
+  }
+  return glossaryId === undefined ? undefined : glossaries.getGlossary(glossaryId, authKey);
+}
+
 function checkLimit(usage, type, request) {
   /* eslint-disable no-param-reassign */
   // Note: this function modifies the usage argument, incrementing the count used
@@ -154,16 +164,8 @@ async function handleTranslate(req, res) {
     const sourceLang = getParam(req, 'source_lang', {
       upper: true, validator: languages.isSourceLanguage,
     });
-    const { authKey } = req.user_account;
     const textArray = getParam(req, 'text', { multi: true, required: true });
-
-    const glossaryId = getParam(req, 'glossary_id',
-      { validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)) });
-    if (glossaryId !== undefined && sourceLang === undefined) {
-      throw new util.HttpError('Use of a glossary requires the source_lang parameter to be specified', 400);
-    }
-    const glossary = glossaryId === undefined ? undefined
-      : glossaries.getGlossary(glossaryId, authKey);
+    const glossary = getParamGlossary(req, sourceLang);
 
     // The following parameters are validated but not used by the mock server
     getParam(req, 'split_sentences', { default: '1', allowedValues: ['0', '1', 'nonewlines'] });
@@ -201,16 +203,8 @@ async function handleDocument(req, res) {
     const sourceLang = getParam(req, 'source_lang', {
       upper: true, validator: languages.isSourceLanguage,
     });
-    const { authKey } = req.user_account;
     getParamFormality(req, targetLang);
-
-    const glossaryId = getParam(req, 'glossary_id',
-      { validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)) });
-    if (glossaryId !== undefined && sourceLang === undefined) {
-      throw new util.HttpError('Use of a glossary requires the source_lang parameter to be specified', 400);
-    }
-    const glossary = glossaryId === undefined ? undefined
-      : glossaries.getGlossary(glossaryId, authKey);
+    const glossary = getParamGlossary(req, sourceLang);
 
     if (!req.files || req.files.file === undefined) {
       res.status(400).send({ message: 'Invalid file data.' });
@@ -224,6 +218,7 @@ async function handleDocument(req, res) {
                     || !checkLimit(req.user_account.usage, 'team_document', 1)) {
           res.status(456).send({ message: 'Quota for this billing period has been exceeded.' });
         } else {
+          const { authKey } = req.user_account;
           const document = await documents.createDocument(file, authKey, targetLang, sourceLang,
             glossary);
           res.status(200).send({
