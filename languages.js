@@ -75,8 +75,9 @@ function isGlossaryLanguage(langCode) {
   return ['EN', 'DE', 'FR', 'ES'].includes(langCodeUpper);
 }
 
-function supportsFormality(langCode) {
+function supportsFormality(langCode, formality) {
   if (langCode === undefined) return false;
+  if (formality !== undefined && formality.startsWith('prefer_')) return true;
   const langCodeUpper = langCode.toUpperCase();
   return languages.has(langCodeUpper) && languages.get(langCodeUpper).formality !== undefined;
 }

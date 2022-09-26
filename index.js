@@ -160,7 +160,7 @@ async function handleTranslate(req, res) {
       default: 'default',
       allowedValues: ['less', 'more', 'default', 'prefer_less', 'prefer_more'],
       validator: (formality) => {
-        if (!languages.supportsFormality(targetLang) && !formality.startsWith('prefer_')) {
+        if (!languages.supportsFormality(targetLang, formality)) {
           throw new util.HttpError("'formality' is not supported for given 'target_lang'.", 400);
         }
       },
@@ -202,7 +202,7 @@ async function handleDocument(req, res) {
       default: 'default',
       allowedValues: ['less', 'more', 'default', 'prefer_less', 'prefer_more'],
       validator: (formality) => {
-        if (!languages.supportsFormality(targetLang) && !formality.startsWith('prefer_')) {
+        if (!languages.supportsFormality(targetLang, formality)) {
           throw new util.HttpError('formality is not supported for given target_lang.', 400);
         }
       },
