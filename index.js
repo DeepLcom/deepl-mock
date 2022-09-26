@@ -95,6 +95,18 @@ function getParam(req, name, options) {
   return v;
 }
 
+function getParamFormality(req, targetLang) {
+  getParam(req, 'formality', {
+    default: 'default',
+    allowedValues: ['less', 'more', 'default', 'prefer_less', 'prefer_more'],
+    validator: (formality) => {
+      if (!languages.supportsFormality(targetLang, formality)) {
+        throw new util.HttpError("'formality' is not supported for given 'target_lang'.", 400);
+      }
+    },
+  });
+}
+
 function checkLimit(usage, type, request) {
   /* eslint-disable no-param-reassign */
   // Note: this function modifies the usage argument, incrementing the count used
@@ -156,15 +168,7 @@ async function handleTranslate(req, res) {
     // The following parameters are validated but not used by the mock server
     getParam(req, 'split_sentences', { default: '1', allowedValues: ['0', '1', 'nonewlines'] });
     getParam(req, 'preserve_formatting', { default: '0', allowedValues: ['0', '1'] });
-    getParam(req, 'formality', {
-      default: 'default',
-      allowedValues: ['less', 'more', 'default', 'prefer_less', 'prefer_more'],
-      validator: (formality) => {
-        if (!languages.supportsFormality(targetLang, formality)) {
-          throw new util.HttpError("'formality' is not supported for given 'target_lang'.", 400);
-        }
-      },
-    });
+    getParamFormality(req, targetLang);
     getParam(req, 'tag_handling', { default: 'xml', allowedValues: ['html', 'xml'] });
     getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1'] });
 
@@ -198,15 +202,7 @@ async function handleDocument(req, res) {
       upper: true, validator: languages.isSourceLanguage,
     });
     const { authKey } = req.user_account;
-    getParam(req, 'formality', {
-      default: 'default',
-      allowedValues: ['less', 'more', 'default', 'prefer_less', 'prefer_more'],
-      validator: (formality) => {
-        if (!languages.supportsFormality(targetLang, formality)) {
-          throw new util.HttpError('formality is not supported for given target_lang.', 400);
-        }
-      },
-    });
+    getParamFormality(req, targetLang);
 
     const glossaryId = getParam(req, 'glossary_id',
       { validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)) });
