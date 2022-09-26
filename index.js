@@ -117,6 +117,15 @@ function getParamGlossary(req, sourceLang) {
   return glossaryId === undefined ? undefined : glossaries.getGlossary(glossaryId, authKey);
 }
 
+function getParamGlossaryId(req, required = true) {
+  return getParam(req, 'glossary_id',
+    {
+      params: true,
+      required,
+      validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)),
+    });
+}
+
 function checkLimit(usage, type, request) {
   /* eslint-disable no-param-reassign */
   // Note: this function modifies the usage argument, incrementing the count used
@@ -296,11 +305,7 @@ async function handleDocumentDownload(req, res) {
 async function handleGlossaryList(req, res) {
   try {
     // Access glossary_id param from path, note: glossary_id is optional, so may be undefined
-    const glossaryId = getParam(req, 'glossary_id',
-      {
-        params: true,
-        validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)),
-      });
+    const glossaryId = getParamGlossaryId(req, false);
     const { authKey } = req.user_account;
 
     if (glossaryId !== undefined) {
@@ -319,12 +324,7 @@ async function handleGlossaryList(req, res) {
 async function handleGlossaryEntries(req, res) {
   try {
     if (req.accepts('text/tab-separated-values')) {
-      const glossaryId = getParam(req, 'glossary_id',
-        {
-          params: true,
-          required: true,
-          validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)),
-        });
+      const glossaryId = getParamGlossaryId(req);
       const { authKey } = req.user_account;
       const entries = glossaries.getGlossaryEntries(glossaryId, authKey);
       res.contentType('text/tab-separated-values; charset=UTF-8');
@@ -386,12 +386,7 @@ async function handleGlossaryCreate(req, res) {
 
 async function handleGlossaryDelete(req, res) {
   try {
-    const glossaryId = getParam(req, 'glossary_id',
-      {
-        params: true,
-        required: true,
-        validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)),
-      });
+    const glossaryId = getParamGlossaryId(req);
     const { authKey } = req.user_account;
     glossaries.removeGlossary(glossaryId, authKey);
     res.status(204).send();
