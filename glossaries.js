@@ -18,14 +18,16 @@ const supportedLanguages = [
   { source_lang: 'en', target_lang: 'de' },
   { source_lang: 'en', target_lang: 'es' },
   { source_lang: 'en', target_lang: 'fr' },
-  { source_lang: 'en', target_lang: 'ja' },
   { source_lang: 'en', target_lang: 'it' },
+  { source_lang: 'en', target_lang: 'ja' },
+  { source_lang: 'en', target_lang: 'nl' },
   { source_lang: 'en', target_lang: 'pl' },
   { source_lang: 'es', target_lang: 'en' },
   { source_lang: 'fr', target_lang: 'de' },
   { source_lang: 'fr', target_lang: 'en' },
-  { source_lang: 'ja', target_lang: 'en' },
   { source_lang: 'it', target_lang: 'en' },
+  { source_lang: 'ja', target_lang: 'en' },
+  { source_lang: 'nl', target_lang: 'en' },
   { source_lang: 'pl', target_lang: 'en' }];
 
 function findEntry(entryList, sourceEntry) {
