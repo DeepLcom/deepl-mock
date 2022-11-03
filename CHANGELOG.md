@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
+### Fixed
+* Mock server incorrectly supported JSON requests that are not supported by
+  DeepL API. Support for JSON requests is removed.
+  * [#3](https://github.com/DeepLcom/deepl-mock/issues/3)
+    thanks to [DevViktorKovacs](https://github.com/DevViktorKovacs).
 
 
 ## [1.8.0] - 2022-09-26
