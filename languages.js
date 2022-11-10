@@ -77,6 +77,7 @@ function isGlossaryLanguage(langCode) {
 
 function supportsFormality(langCode, formality) {
   if (langCode === undefined) return false;
+  if (formality === 'default') return true;
   if (formality !== undefined && formality.startsWith('prefer_')) return true;
   const langCodeUpper = langCode.toUpperCase();
   return languages.has(langCodeUpper) && languages.get(langCodeUpper).formality !== undefined;

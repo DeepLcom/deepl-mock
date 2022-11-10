@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+### Fixed
+* `formality=default` is allowed for all target languages.
+
+
 ## [1.9.0] - 2022-11-03
 ### Added
 * Add to supported glossary language pairs:
@@ -144,6 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial version.
 
 
+[Unreleased]: https://github.com/DeepLcom/deepl-mock/compare/v1.9.0...HEAD
 [1.9.0]: https://github.com/DeepLcom/deepl-mock/compare/v1.8.1...v1.9.0
 [1.8.1]: https://github.com/DeepLcom/deepl-mock/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/DeepLcom/deepl-mock/compare/v1.7.0...v1.8.0
