@@ -42,7 +42,7 @@ function generateRandomHexString(length) {
 async function createDocument(file, authKey, targetLang, sourceLang, glossary) {
   const extname = path.extname(file.name).toLowerCase();
 
-  if (!(['.txt', '.docx', '.pptx', '.htm', '.html'].includes(extname))) {
+  if (!(['.txt', '.docx', '.pptx', '.htm', '.html', '.xlf', '.xliff'].includes(extname))) {
     throw new util.HttpError('Invalid file data.', 400);
   }
   if (extname !== '.txt') {

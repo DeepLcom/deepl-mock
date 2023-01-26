@@ -109,7 +109,7 @@ after 10 minutes of inactivity.
 
 ### Only .txt files
 This mock server only supports .txt files for document translation. The DeepL API additionally supports .docx, .pptx,
-.pdf and .html/.htm files. The server removes documents after 10 minutes of inactivity.
+.pdf, .html/.htm, and .xlf/.xliff files. The server removes documents after 10 minutes of inactivity.
 
 ### Account usage
 This mock server uses simplified calculations to update account usage. 

@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 * Add new languages Korean (`'KO'`) and Norwegian (bokmål) (`'NB'`).
+* Add limited support for XLIFF files. As this mock server only translates text
+  files, XLIFF files will return a 503 error (the same as for other file types).
 
 
 ## [1.9.1] - 2022-12-07
