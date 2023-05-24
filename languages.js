@@ -26,7 +26,9 @@ const languages = new Map([
   ['IT', {
     name: 'Italian', type: 'both', formality: true, text: 'fascio di protoni',
   }],
-  ['JA', { name: 'Japanese', type: 'both', text: '陽子ビーム' }],
+  ['JA', {
+    name: 'Japanese', type: 'both', formality: true, text: '陽子ビーム',
+  }],
   ['KO', { name: 'Korean', type: 'both', text: '양성자 빔' }],
   ['LT', { name: 'Lithuanian', type: 'both', text: 'protonų spindulys' }],
   ['LV', { name: 'Latvian', type: 'both', text: 'protonu staru kūlis' }],
