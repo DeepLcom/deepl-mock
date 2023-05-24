@@ -430,12 +430,14 @@ app.all('/*', (req, res) => {
   res.status(404).send();
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`DeepL API mock-server listening on port ${port}`);
 }).on('error', (error) => {
   console.error(`Error occurred while starting the server: ${error}`);
   process.exit(1);
 });
+
+server.keepAliveTimeout = 10 * 1000;
 
 if (!Number.isNaN(proxyPort)) {
   const proxyApp = express();

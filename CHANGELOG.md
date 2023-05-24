@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
+### Added
+* Verify keepalive is used by clients by rejecting session reuse on new sockets,
+  except in case where no-response mode is active
 
 
 ## [1.11.0] - 2023-07-06

@@ -73,18 +73,19 @@ once created, sessions cannot be reconfigured.
 
 The server removes sessions after 10 minutes of inactivity.
 
-|Header field |Type  | Description|
-| :--- | :--- | :--- |
-|mock-server-session|Any|Uniquely identifies this test session.|
-|mock-server-session-no-response-count|Integer|Specifies the number of requests that should result in no response before resuming normal behavior.|
-|mock-server-session-429-count|Integer|Specifies the number of **/translate** requests that should result in a **429 Too Many Requests** response before resuming normal behavior.|
-|mock-server-session-doc-failure|Integer|Specifies the number of documents that should fail during translation before resuming normal behavior.|
-|mock-server-session-init-character-limit|Integer|Specifies the character limit for user accounts created in this session, specify 0 to remove limit. Default: 20000000.|
-|mock-server-session-init-document-limit|Integer|Specifies the document limit for user accounts created in this session, specify 0 to remove limit. Default: 10000.|
-|mock-server-session-init-team-document-limit|Integer|Specifies the team document limit for user accounts created in this session. Default: no limit.|
-|mock-server-session-doc-queue-time|Integer|Specifies the time in milliseconds that documents are queued before being translated.|
-|mock-server-session-doc-translate-time|Integer|Specifies the time in milliseconds that documents take to translate.|
-|mock-server-session-expect-proxy|Integer|If non-zero, only requests via the proxy server are accepted. Requests are considered to come via proxy if the Forwarded HTTP header is included.|
+| Header field                                 | Type    | Description                                                                                                                                       |
+|:---------------------------------------------|:--------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
+| mock-server-session                          | Any     | Uniquely identifies this test session.                                                                                                            |
+| mock-server-session-no-response-count        | Integer | Specifies the number of requests that should result in no response before resuming normal behavior.                                               |
+| mock-server-session-429-count                | Integer | Specifies the number of **/translate** requests that should result in a **429 Too Many Requests** response before resuming normal behavior.       |
+| mock-server-session-doc-failure              | Integer | Specifies the number of documents that should fail during translation before resuming normal behavior.                                            |
+| mock-server-session-init-character-limit     | Integer | Specifies the character limit for user accounts created in this session, specify 0 to remove limit. Default: 20000000.                            |
+| mock-server-session-init-document-limit      | Integer | Specifies the document limit for user accounts created in this session, specify 0 to remove limit. Default: 10000.                                |
+| mock-server-session-init-team-document-limit | Integer | Specifies the team document limit for user accounts created in this session. Default: no limit.                                                   |
+| mock-server-session-doc-queue-time           | Integer | Specifies the time in milliseconds that documents are queued before being translated.                                                             |
+| mock-server-session-doc-translate-time       | Integer | Specifies the time in milliseconds that documents take to translate.                                                                              |
+| mock-server-session-expect-proxy             | Integer | If non-zero, only requests via the proxy server are accepted. Requests are considered to come via proxy if the Forwarded HTTP header is included. |
+| mock-server-session-allow-reconnections      | Integer | If non-zero, disables rejecting requests due to unnecessary reconnections.                                                                        |
 
 ## Limitations compared with the DeepL API
 ### Limited translation
@@ -116,6 +117,18 @@ This mock server uses simplified calculations to update account usage.
 
 ### Formality, tag-handling, formatting 
 This mock server does not implement these features, however the API input parameters are validated.
+
+## Additional checks compared with the DeepL API
+
+### User-Agent
+
+This mock server rejects requests that do not include a non-empty `User-Agent` header, while the DeepL API accepts them.
+
+### Socket reconnections
+
+To check that clients use `Keep-Alive` correctly, this mock server detects when a new socket is used for an
+existing session and rejects these requests. Clients correctly using `Keep-Alive` should avoid these rejections.
+To disable this check, set the `mock-server-session-allow-reconnections` session header to non-zero.
 
 ## Issues
 If you experience problems using the library, or would like to request a new feature, please open an

@@ -9,8 +9,8 @@ util.scheduleCleanup(sessions, (_, id) => {
   console.log('Removed session:', id);
 });
 
-function createSession(headers) {
-  const session = {};
+function createSession(headers, socket) {
+  const session = { sockets: [socket] };
 
   const vars = {
     no_response_count: 'mock-server-session-no-response-count',
@@ -22,6 +22,7 @@ function createSession(headers) {
     doc_queue_time: 'mock-server-session-doc-queue-time',
     doc_translate_time: 'mock-server-session-doc-translate-time',
     expect_proxy: 'mock-server-session-expect-proxy',
+    allow_reconnections: 'mock-server-session-allow-reconnections',
   };
 
   // eslint-disable-next-line guard-for-in,no-restricted-syntax
@@ -38,6 +39,8 @@ function createSession(headers) {
     }
   }
 
+  session.remaining_no_response_count = session.no_response_count ?? 0;
+
   return session;
 }
 
@@ -49,18 +52,31 @@ module.exports = () => (req, res, next) => {
   const uuid = req.headers['mock-server-session'];
   if (uuid) {
     if (!sessions.has(uuid)) {
-      sessions.set(uuid, createSession(req.headers));
+      sessions.set(uuid, createSession(req.headers, req.socket));
       console.log('Created session:', uuid);
     }
 
     req.session = sessions.get(uuid);
     req.session.used = new Date();
+
+    if (req.session.sockets.includes(req.socket)) {
+      console.log('Socket already used in session');
+    } else if (req.session.allow_reconnections !== 0) {
+      req.session.sockets.push(req.socket);
+    } else if (req.session.no_response_count > 0) {
+      // Note: in no-response test cases, clients are expected to open new connections
+      req.session.sockets.push(req.socket);
+    } else {
+      console.log('Socket new for this session');
+      res.status(400).send({ message: 'New socket opened in same session.' });
+      return undefined; // Do not continue with next handler
+    }
   } else {
     req.session = {};
   }
 
-  if (req.session.no_response_count > 0) {
-    req.session.no_response_count -= 1;
+  if (req.session.remaining_no_response_count > 0) {
+    req.session.remaining_no_response_count -= 1;
     return undefined; // Give no response and do not continue with next handler
   }
 
