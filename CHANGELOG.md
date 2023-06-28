@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+### Added
+* Add formality for Japanese (`'JA'`).
+
+
 ## [1.10.0] - 2023-01-26
 ### Added
 * Add new languages Korean (`'KO'`) and Norwegian (bokmål) (`'NB'`).
@@ -156,6 +161,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial version.
 
 
+[Unreleased]: https://github.com/DeepLcom/deepl-mock/compare/v1.10.0...HEAD
 [1.10.0]: https://github.com/DeepLcom/deepl-mock/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/DeepLcom/deepl-mock/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/DeepLcom/deepl-mock/compare/v1.8.1...v1.9.0
