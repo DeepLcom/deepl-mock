@@ -177,10 +177,10 @@ async function handleTranslate(req, res) {
 
     // The following parameters are validated but not used by the mock server
     getParam(req, 'split_sentences', { default: '1', allowedValues: ['0', '1', 'nonewlines'] });
-    getParam(req, 'preserve_formatting', { default: '0', allowedValues: ['0', '1'] });
+    getParam(req, 'preserve_formatting', { default: '0', allowedValues: ['0', '1', true, false] });
     getParamFormality(req, targetLang);
     getParam(req, 'tag_handling', { default: 'xml', allowedValues: ['html', 'xml'] });
-    getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1'] });
+    getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1', true, false] });
 
     // Calculate the character count of the requested translation
     const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);
@@ -395,23 +395,30 @@ async function handleGlossaryDelete(req, res) {
   }
 }
 
+app.use('/v2/languages', express.json());
 app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
 app.post('/v2/languages', auth, requireUserAgent, handleLanguages);
 
+app.use('/v2/usage', express.json());
 app.get('/v2/usage', auth, requireUserAgent, handleUsage);
 app.post('/v2/usage', auth, requireUserAgent, handleUsage);
 
+app.use('/v2/translate', express.json());
 app.get('/v2/translate', auth, requireUserAgent, handleTranslate);
 app.post('/v2/translate', auth, requireUserAgent, handleTranslate);
 
 app.post('/v2/document', auth, requireUserAgent, handleDocument);
 
+app.use('/v2/document/:document_id', express.json());
 app.get('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
 app.post('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
 
+app.use('/v2/document/:document_id/result', express.json());
 app.get('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
 app.post('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
 
+// Maximum glossary size is 10MiB, but there is some extra request overhead
+app.use('/v2/glossaries', express.json({ limit: '11mb' }));
 app.get('/v2/glossary-language-pairs', auth, requireUserAgent, handleGlossaryLanguages);
 app.post('/v2/glossaries', auth, requireUserAgent, handleGlossaryCreate);
 app.get('/v2/glossaries', auth, requireUserAgent, handleGlossaryList);

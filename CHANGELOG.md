@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 * Add formality for Japanese (`'JA'`).
+* Add JSON-requests support to certain endpoints, matching DeepL API.
 
 
 ## [1.10.0] - 2023-01-26
