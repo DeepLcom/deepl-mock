@@ -27,7 +27,7 @@ util.scheduleCleanup(documents, (document, id) => {
   if (document.path_out) {
     deleteFile(document.path_out);
   }
-  console.log('Removed document:', id);
+  console.debug('Removed document:', id);
 });
 
 function generateRandomHexString(length) {
@@ -134,13 +134,13 @@ async function translateDocument(document, session) {
       console.log(`Translated ${pathIn} to ${document.target_lang}, stored result at ${pathOut}`);
     }
   }
-  console.log(`Removing input document ${pathIn}`);
+  console.debug(`Removing input document ${pathIn}`);
   deleteFile(pathIn);
   /* eslint-enable no-param-reassign */
 }
 
 function removeDocument(document) {
-  console.log(`Removing output document ${document.path_out}`);
+  console.debug(`Removing output document ${document.path_out}`);
   deleteFile(document.path_out);
 
   documents.delete(document.id);

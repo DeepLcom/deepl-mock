@@ -6,7 +6,7 @@ const util = require('./util');
 
 const sessions = new Map();
 util.scheduleCleanup(sessions, (_, id) => {
-  console.log('Removed session:', id);
+  console.debug('Removed session:', id);
 });
 
 function createSession(headers, socket) {
@@ -31,10 +31,10 @@ function createSession(headers, socket) {
     if (headers[headerName] !== undefined) {
       const value = Number(headers[headerName]);
       if (Number.isNaN(value)) {
-        console.log(`Invalid value for header '${headerName}', expected number.`);
+        console.error(`Invalid value for header '${headerName}', expected number.`);
       } else {
         session[varName] = value;
-        console.log(`Session header '${headerName}' = ${value}.`);
+        console.debug(`Session header '${headerName}' = ${value}.`);
       }
     }
   }
@@ -53,21 +53,20 @@ module.exports = () => (req, res, next) => {
   if (uuid) {
     if (!sessions.has(uuid)) {
       sessions.set(uuid, createSession(req.headers, req.socket));
-      console.log('Created session:', uuid);
     }
 
     req.session = sessions.get(uuid);
     req.session.used = new Date();
 
     if (req.session.sockets.includes(req.socket)) {
-      console.log('Socket already used in session');
+      console.info('Socket already used in session');
     } else if (req.session.allow_reconnections !== 0) {
       req.session.sockets.push(req.socket);
     } else if (req.session.no_response_count > 0) {
       // Note: in no-response test cases, clients are expected to open new connections
       req.session.sockets.push(req.socket);
     } else {
-      console.log('Socket new for this session');
+      console.error('Socket new for this session');
       res.status(400).send({ message: 'New socket opened in same session.' });
       return undefined; // Do not continue with next handler
     }
@@ -82,7 +81,7 @@ module.exports = () => (req, res, next) => {
 
   if (req.session.expect_proxy) {
     if (req.headers.forwarded === undefined) {
-      console.log('Expected a request via proxy.');
+      console.error('Expected a request via proxy.');
       res.status(400).send({ message: 'Expected a request via proxy.' });
       return undefined; // Do not continue with next handler
     }

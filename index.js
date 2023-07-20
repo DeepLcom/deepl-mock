@@ -247,12 +247,9 @@ async function handleDocument(req, res) {
 async function handleDocumentStatus(req, res) {
   try {
     const { authKey } = req.user_account;
-    console.log('authKey:', authKey);
     const documentKey = getParam(req, 'document_key', { single: true });
-    console.log('documentKey:', documentKey);
     const document = documents.getDocument(req.params.document_id, documentKey, authKey,
       req.session);
-    console.log('document:', document);
 
     const body = {
       document_id: document.id,

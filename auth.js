@@ -15,7 +15,6 @@ function userExists(authKey) {
 
 function createUser(authKey, session) {
   const usage = {};
-  console.log('Creating user with session:', session);
   if (session?.init_char_limit !== 0) {
     usage.character_count = 0;
     usage.character_limit = session?.init_char_limit || 20000000;
@@ -28,8 +27,8 @@ function createUser(authKey, session) {
     usage.team_document_count = 0;
     usage.team_document_limit = session?.init_team_doc_limit;
   }
-  console.log('Usage:', usage);
 
+  console.log('Created user with session:', session, ' authKey:', authKey, ' usage:', usage);
   users.set(authKey, {
     authKey,
     usage,
@@ -65,7 +64,7 @@ module.exports = (req, res, next) => {
 
   if (!userExists(authKey)) {
     createUser(authKey, req.session);
-    console.log(`Added user account for ${authKey}`);
+    console.debug(`Added user account for ${authKey}`);
   }
   req.user_account = users.get(authKey);
   req.user_account.used = new Date();
