@@ -47,11 +47,11 @@ if (Number.isNaN(proxyPort)) {
 
 function requireUserAgent(req, res, next) {
   const userAgentHeader = req.headers['user-agent'];
-  if (userAgentHeader === undefined || userAgentHeader === '') {
+  if ((userAgentHeader === undefined || userAgentHeader === '') && !req.session?.allow_missing_user_agent) {
+    // Give no response and do not continue with next handler
     res.status(400).send({ message: 'User-Agent header missing.' });
-    return undefined; // Give no response and do not continue with next handler
+    return undefined;
   }
-
   return next();
 }
 

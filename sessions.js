@@ -22,6 +22,7 @@ function createSession(headers, socket) {
     doc_queue_time: 'mock-server-session-doc-queue-time',
     doc_translate_time: 'mock-server-session-doc-translate-time',
     expect_proxy: 'mock-server-session-expect-proxy',
+    allow_missing_user_agent: 'mock-server-session-allow-missing-user-agent',
     allow_reconnections: 'mock-server-session-allow-reconnections',
   };
 

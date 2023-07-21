@@ -86,6 +86,7 @@ The server removes sessions after 10 minutes of inactivity.
 | mock-server-session-doc-translate-time       | Integer | Specifies the time in milliseconds that documents take to translate.                                                                              |
 | mock-server-session-expect-proxy             | Integer | If non-zero, only requests via the proxy server are accepted. Requests are considered to come via proxy if the Forwarded HTTP header is included. |
 | mock-server-session-allow-reconnections      | Integer | If non-zero, disables rejecting requests due to unnecessary reconnections.                                                                        |
+| mock-server-session-allow-missing-user-agent | Integer | If non-zero, disables rejecting requests due to missing User-Agent.                                                                               |
 
 ## Limitations compared with the DeepL API
 ### Limited translation
@@ -123,6 +124,7 @@ This mock server does not implement these features, however the API input parame
 ### User-Agent
 
 This mock server rejects requests that do not include a non-empty `User-Agent` header, while the DeepL API accepts them.
+To disable this check, set the `mock-server-session-allow-missing-user-agent` session header to non-zero.
 
 ### Socket reconnections
 
