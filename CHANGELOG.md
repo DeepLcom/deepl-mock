@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   except in case where no-response mode is active
 * Add `mock-server-session-allow-missing-user-agent` session header to override
   missing User-Agent check. 
+* Add supported glossary languages: Portuguese (`'PT'`), Russian (`'RU'`), and Chinese (`'ZH'`).
+
 
 ## [1.11.0] - 2023-07-06
 ### Added

@@ -12,23 +12,21 @@ util.scheduleCleanup(glossaries, (glossary, glossaryId) => {
   console.log(`Removing glossary "${glossary.name}" (${glossaryId})`);
 });
 
-const supportedLanguages = [
-  { source_lang: 'de', target_lang: 'en' },
-  { source_lang: 'de', target_lang: 'fr' },
-  { source_lang: 'en', target_lang: 'de' },
-  { source_lang: 'en', target_lang: 'es' },
-  { source_lang: 'en', target_lang: 'fr' },
-  { source_lang: 'en', target_lang: 'it' },
-  { source_lang: 'en', target_lang: 'ja' },
-  { source_lang: 'en', target_lang: 'nl' },
-  { source_lang: 'en', target_lang: 'pl' },
-  { source_lang: 'es', target_lang: 'en' },
-  { source_lang: 'fr', target_lang: 'de' },
-  { source_lang: 'fr', target_lang: 'en' },
-  { source_lang: 'it', target_lang: 'en' },
-  { source_lang: 'ja', target_lang: 'en' },
-  { source_lang: 'nl', target_lang: 'en' },
-  { source_lang: 'pl', target_lang: 'en' }];
+const supportedLanguagesList = ['de', 'en', 'es', 'fr', 'it', 'ja', 'nl', 'pl', 'pt', 'ru', 'zh'];
+
+const supportedLanguages = (() => {
+  const result = [];
+  for (let i = 0; i < supportedLanguagesList.length; i += 1) {
+    for (let j = 0; j < supportedLanguagesList.length; j += 1) {
+      if (i !== j) {
+        const sourceLang = supportedLanguagesList[i];
+        const targetLang = supportedLanguagesList[j];
+        result.push({ source_lang: sourceLang, target_lang: targetLang });
+      }
+    }
+  }
+  return result;
+})();
 
 function findEntry(entryList, sourceEntry) {
   for (let i = 0; i < entryList.length; i += 1) {
