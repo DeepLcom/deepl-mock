@@ -6,27 +6,12 @@ const uuid = require('uuid');
 const csvParser = require('csv-parser');
 const { Readable } = require('stream');
 const util = require('./util');
+const languages = require('./languages');
 
 const glossaries = new Map();
 util.scheduleCleanup(glossaries, (glossary, glossaryId) => {
   console.log(`Removing glossary "${glossary.name}" (${glossaryId})`);
 });
-
-const supportedLanguagesList = ['de', 'en', 'es', 'fr', 'it', 'ja', 'nl', 'pl', 'pt', 'ru', 'zh'];
-
-const supportedLanguages = (() => {
-  const result = [];
-  for (let i = 0; i < supportedLanguagesList.length; i += 1) {
-    for (let j = 0; j < supportedLanguagesList.length; j += 1) {
-      if (i !== j) {
-        const sourceLang = supportedLanguagesList[i];
-        const targetLang = supportedLanguagesList[j];
-        result.push({ source_lang: sourceLang, target_lang: targetLang });
-      }
-    }
-  }
-  return result;
-})();
 
 function findEntry(entryList, sourceEntry) {
   for (let i = 0; i < entryList.length; i += 1) {
@@ -112,14 +97,6 @@ function extractGlossaryInfo(glossary) {
   };
 }
 
-function isSupportedLanguagePair(sourceLang, targetLang) {
-  const matchingLanguagesCount = supportedLanguages.filter(
-    (glossary) => glossary.source_lang.toUpperCase() === sourceLang
-        && glossary.target_lang.toUpperCase() === targetLang,
-  ).length;
-  return (matchingLanguagesCount > 0);
-}
-
 function isValidGlossaryId(glossaryId) {
   return uuid.validate(glossaryId);
 }
@@ -135,7 +112,7 @@ function translateWithGlossary(entryList, input) {
 }
 
 async function createGlossary(name, authKey, targetLang, sourceLang, entriesFormat, entries) {
-  if (!isSupportedLanguagePair(sourceLang, targetLang)) {
+  if (!languages.isGlossarySupportedLanguagePair(sourceLang, targetLang)) {
     throw new util.HttpError('Unsupported glossary source and target language pair', 400);
   }
 
@@ -209,5 +186,4 @@ module.exports = {
   getGlossaryInfoList,
   getGlossaryEntries,
   removeGlossary,
-  supportedLanguages,
 };

@@ -338,7 +338,7 @@ function handleGlossaryLanguages(req, res) {
   try {
     res.status(200).send(
       {
-        supported_languages: glossaries.supportedLanguages,
+        supported_languages: languages.getGlossaryLanguagePairs(),
       },
     );
   } catch (err) {

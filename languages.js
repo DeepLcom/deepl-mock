@@ -60,6 +60,16 @@ const languages = new Map([
   }],
 ]);
 
+const glossaryLanguages = ['de', 'en', 'es', 'fr', 'it', 'ja', 'nl', 'pl', 'pt', 'ru', 'zh'];
+const glossaryLanguagePairs = glossaryLanguages.flatMap(
+  (source) => glossaryLanguages.map(
+    (target) => ((source === target) ? null : {
+      source_lang: source,
+      target_lang: target,
+    }),
+  ),
+).filter((p) => p);
+
 function isSourceLanguage(langCode) {
   // Unspecified source_lang parameter activates auto-detect
   if (langCode === undefined) return true;
@@ -75,8 +85,13 @@ function isTargetLanguage(langCode) {
 
 function isGlossaryLanguage(langCode) {
   if (langCode === undefined) return false;
-  const langCodeUpper = langCode.toUpperCase();
-  return ['EN', 'DE', 'FR', 'ES'].includes(langCodeUpper);
+  const langCodeLower = langCode.toLowerCase();
+  return glossaryLanguages.includes(langCodeLower);
+}
+
+function isGlossarySupportedLanguagePair(sourceLang, targetLang) {
+  return glossaryLanguages.includes(sourceLang.toLowerCase())
+      && glossaryLanguages.includes(targetLang.toLowerCase());
 }
 
 function supportsFormality(langCode, formality) {
@@ -112,6 +127,10 @@ function getTargetLanguages() {
     }
   });
   return targetLanguages;
+}
+
+function getGlossaryLanguagePairs() {
+  return glossaryLanguagePairs;
 }
 
 function translateLine(input, targetLang, glossary) {
@@ -158,5 +177,7 @@ module.exports = {
   isTargetLanguage,
   supportsFormality,
   getTargetLanguages,
+  getGlossaryLanguagePairs,
+  isGlossarySupportedLanguagePair,
   translate,
 };
