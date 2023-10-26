@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 const languages = new Map([
+  ['AR', { name: 'Arabic', type: 'both', text: 'شعاع البروتون' }],
   ['BG', { name: 'Bulgarian', type: 'both', text: 'протонен лъч' }],
   ['CS', { name: 'Czech', type: 'both', text: 'protonový paprsek' }],
   ['DA', { name: 'Danish', type: 'both', text: 'protonstråle' }],
