@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Add `mock-server-session-allow-missing-user-agent` session header to override
   missing User-Agent check. 
 * Add supported glossary languages: Portuguese (`'PT'`), Russian (`'RU'`), and Chinese (`'ZH'`).
+* Add `output_format` parameter for document upload, to specify the desired file
+  format of the output file
 
 
 ## [1.11.0] - 2023-07-06

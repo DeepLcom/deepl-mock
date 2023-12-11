@@ -109,9 +109,9 @@ This server creates a new user account whenever it receives a request with an un
 behaviour due to an incorrect key use either an empty key, or the value "invalid". The server removes user accounts
 after 10 minutes of inactivity.
 
-### Only .txt files
-This mock server only supports .txt files for document translation. The DeepL API additionally supports .docx, .pptx,
-.pdf, .html/.htm, and .xlf/.xliff files. The server removes documents after 10 minutes of inactivity.
+### Only .txt and .htm/.html files
+This mock server only supports .txt and .htm/.html files for document translation. The DeepL API additionally supports
+.docx, .pptx, .pdf, .html/.htm, .xlf/.xliff, and .xlsx files. The server removes documents after 10 minutes of inactivity.
 
 ### Account usage
 This mock server uses simplified calculations to update account usage. 

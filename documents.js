@@ -39,14 +39,19 @@ function generateRandomHexString(length) {
   return output;
 }
 
-async function createDocument(file, authKey, targetLang, sourceLang, glossary) {
-  const extname = path.extname(file.name).toLowerCase();
+function isSupportedDocumentFormat(filePath) {
+  const extname = (filePath.includes('.') ? path.extname(filePath).slice(1) : filePath).toLowerCase();
+  return ['txt', 'docx', 'pdf', 'pptx', 'htm', 'html', 'xlf', 'xliff', 'xlsx'].includes(extname);
+}
 
-  if (!(['.txt', '.docx', '.pptx', '.htm', '.html', '.xlf', '.xliff'].includes(extname))) {
+async function createDocument(file, authKey, targetLang, sourceLang, glossary, outputFormat) {
+  const extname = path.extname(file.name).slice(1).toLowerCase();
+
+  if (!isSupportedDocumentFormat(file.name)) {
     throw new util.HttpError('Invalid file data.', 400);
   }
-  if (extname !== '.txt') {
-    throw new util.HttpError('Mock server only implements document translation for .txt files.', 503);
+  if (!(['txt', 'htm', 'html'].includes(extname))) {
+    throw new util.HttpError('Mock server only implements document translation for .txt, .htm, and .html files.', 503);
   }
   if (targetLang === sourceLang) {
     throw new util.HttpError('Source and target language are equal.', 400);
@@ -59,20 +64,29 @@ async function createDocument(file, authKey, targetLang, sourceLang, glossary) {
 
   await file.mv(pathIn);
 
+  const nameOut = outputFormat ? (`${path.basename(file.name, `.${extname}`)}.${outputFormat}`) : file.name;
+  const contentType = {
+    txt: 'text/plain',
+    htm: 'text/html',
+    html: 'text/html',
+  }[outputFormat ?? extname];
+
   // Add document to list
   const document = {
     id: documentId,
     key: documentKey,
     pathIn,
     path_out: undefined,
-    name_out: file.name,
+    name_out: nameOut,
     mimetype: file.mimetype,
+    contentType,
     created: new Date(),
     used: new Date(),
     authKey,
     source_lang: sourceLang,
     target_lang: targetLang,
     glossary,
+    outputFormat,
     // Mock server simplification: billed characters assumed to be file size
     billed_characters: file.size,
     status: 'queued',
@@ -147,5 +161,5 @@ function removeDocument(document) {
 }
 
 module.exports = {
-  createDocument, getDocument, translateDocument, removeDocument,
+  createDocument, getDocument, isSupportedDocumentFormat, translateDocument, removeDocument,
 };

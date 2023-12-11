@@ -213,6 +213,10 @@ async function handleDocument(req, res) {
     });
     getParamFormality(req, targetLang);
     const glossary = getParamGlossary(req, sourceLang);
+    const outputFormat = getParam(req, 'output_format', {
+      lower: true,
+      validator: (format) => format === undefined || documents.isSupportedDocumentFormat(format),
+    });
 
     if (!req.files || req.files.file === undefined) {
       res.status(400).send({ message: 'Invalid file data.' });
@@ -228,7 +232,7 @@ async function handleDocument(req, res) {
         } else {
           const { authKey } = req.user_account;
           const document = await documents.createDocument(file, authKey, targetLang, sourceLang,
-            glossary);
+            glossary, outputFormat);
           res.status(200).send({
             document_id: document.id,
             document_key: document.key,
@@ -285,13 +289,20 @@ async function handleDocumentDownload(req, res) {
       res.status(503).send({ message: 'Document translation is not done' });
     } else {
       res.status(200);
-      res.download(document.path_out, document.name_out, (err) => {
-        if (err) {
-          console.log(`Error occurred during file download: ${err}`);
-        } else {
-          documents.removeDocument(document);
-        }
-      });
+      res.download(
+        document.path_out,
+        document.name_out,
+        {
+          headers: { 'Content-Type': document.contentType },
+        },
+        (err) => {
+          if (err) {
+            console.log(`Error occurred during file download: ${err}`);
+          } else {
+            documents.removeDocument(document);
+          }
+        },
+      );
     }
   } catch {
     res.status(404).send();
