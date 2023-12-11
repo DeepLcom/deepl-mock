@@ -65,7 +65,7 @@ async function createDocument(file, authKey, targetLang, sourceLang, glossary) {
     key: documentKey,
     pathIn,
     path_out: undefined,
-    name: file.name,
+    name_out: file.name,
     mimetype: file.mimetype,
     created: new Date(),
     used: new Date(),
