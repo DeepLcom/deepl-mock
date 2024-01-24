@@ -39,19 +39,45 @@ function generateRandomHexString(length) {
   return output;
 }
 
-function isSupportedDocumentFormat(filePath) {
-  const extname = (filePath.includes('.') ? path.extname(filePath).slice(1) : filePath).toLowerCase();
-  return ['txt', 'docx', 'pdf', 'pptx', 'htm', 'html', 'xlf', 'xliff', 'xlsx'].includes(extname);
+const documentFormatInfos = [
+  {
+    exts: ['txt'],
+    mockServerSupports: true,
+    contentType: 'text/plain',
+  },
+  {
+    exts: ['htm', 'html'],
+    mockServerSupports: true,
+    contentType: 'text/html',
+  },
+  {
+    exts: ['docx', 'pdf', 'pptx', 'xlf', 'xliff', 'xlsx'],
+    mockServerSupports: false,
+  },
+  // note: unlisted file extensions are not supported
+];
+
+function lookupFormatInfo(filePathOrExt) {
+  const ext = (filePathOrExt.includes('.') ? path.extname(filePathOrExt).slice(1) : filePathOrExt).toLowerCase();
+  return {
+    ext,
+    formatInfo: documentFormatInfos.find((f) => f.exts.includes(ext)),
+  };
 }
 
 async function createDocument(file, authKey, targetLang, sourceLang, glossary, outputFormat) {
-  const extname = path.extname(file.name).slice(1).toLowerCase();
+  const { ext, formatInfo } = lookupFormatInfo(file.name);
+  const outputFormatInfo = outputFormat ? lookupFormatInfo(outputFormat).formatInfo : formatInfo;
 
-  if (!isSupportedDocumentFormat(file.name)) {
+  if (formatInfo === undefined) {
     throw new util.HttpError('Invalid file data.', 400);
   }
-  if (!(['txt', 'htm', 'html'].includes(extname))) {
-    throw new util.HttpError('Mock server only implements document translation for .txt, .htm, and .html files.', 503);
+  if (!formatInfo.mockServerSupports) {
+    throw new util.HttpError('Mock server does not implement document translation for all file formats.', 503);
+  }
+  if (outputFormat !== undefined
+        && (outputFormatInfo === undefined || outputFormatInfo.contentType === undefined)) {
+    throw new util.HttpError('output_format not supported.', 400);
   }
   if (targetLang === sourceLang) {
     throw new util.HttpError('Source and target language are equal.', 400);
@@ -64,12 +90,8 @@ async function createDocument(file, authKey, targetLang, sourceLang, glossary, o
 
   await file.mv(pathIn);
 
-  const nameOut = outputFormat ? (`${path.basename(file.name, `.${extname}`)}.${outputFormat}`) : file.name;
-  const contentType = {
-    txt: 'text/plain',
-    htm: 'text/html',
-    html: 'text/html',
-  }[outputFormat ?? extname];
+  const nameOut = outputFormat ? (`${path.basename(file.name, `.${ext}`)}.${outputFormat}`) : file.name;
+  const { contentType } = outputFormatInfo;
 
   // Add document to list
   const document = {
@@ -161,5 +183,5 @@ function removeDocument(document) {
 }
 
 module.exports = {
-  createDocument, getDocument, isSupportedDocumentFormat, translateDocument, removeDocument,
+  createDocument, getDocument, translateDocument, removeDocument,
 };

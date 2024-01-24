@@ -213,10 +213,7 @@ async function handleDocument(req, res) {
     });
     getParamFormality(req, targetLang);
     const glossary = getParamGlossary(req, sourceLang);
-    const outputFormat = getParam(req, 'output_format', {
-      lower: true,
-      validator: (format) => format === undefined || documents.isSupportedDocumentFormat(format),
-    });
+    const outputFormat = getParam(req, 'output_format', { lower: true });
 
     if (!req.files || req.files.file === undefined) {
       res.status(400).send({ message: 'Invalid file data.' });
