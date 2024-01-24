@@ -27,7 +27,7 @@
     "eslint-plugin-import": "^2.25.4"
   },
   "engines": {
-    "node": "^14"
+    "node": ">=14"
   },
   "files": [
     "auth.js",
