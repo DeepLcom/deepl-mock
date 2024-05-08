@@ -61,7 +61,7 @@ const languages = new Map([
   }],
 ]);
 
-const glossaryLanguages = ['de', 'en', 'es', 'fr', 'it', 'ja', 'nl', 'pl', 'pt', 'ru', 'zh'];
+const glossaryLanguages = ['da', 'de', 'en', 'es', 'fr', 'it', 'ja', 'nb', 'nl', 'pl', 'pt', 'ru', 'sv', 'zh'];
 const glossaryLanguagePairs = glossaryLanguages.flatMap(
   (source) => glossaryLanguages.map(
     (target) => ((source === target) ? null : {
