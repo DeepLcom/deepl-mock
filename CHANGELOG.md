@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Add supported glossary languages: Danish (`'da'`), Norwegian (bokmål)
   (`'nb'`), and Swedish (`'sv'`).
+* Add billed characters to translate-text function: (`show_billed_characters`
+  request parameter, and `billed_characters` response parameter). 
 
 
 ## [1.12.0] - 2024-04-08

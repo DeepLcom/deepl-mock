@@ -181,6 +181,7 @@ async function handleTranslate(req, res) {
     getParamFormality(req, targetLang);
     getParam(req, 'tag_handling', { default: 'xml', allowedValues: ['html', 'xml'] });
     getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1', true, false] });
+    const showBilledCharacters = getParam(req, 'show_billed_characters', { default: false, allowedValues: ['0', '1', true, false] });
 
     // Calculate the character count of the requested translation
     const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);
@@ -193,8 +194,13 @@ async function handleTranslate(req, res) {
       res.status(456).send({ message: 'Quota for this billing period has been exceeded.' });
     } else {
       const body = {
-        translations: textArray.map((text) => languages.translate(text, targetLang, sourceLang,
-          glossary)),
+        translations: textArray.map((text) => {
+          const result = languages.translate(text, targetLang, sourceLang, glossary);
+          if (showBilledCharacters) {
+            result.billed_characters = text.length;
+          }
+          return result;
+        }),
       };
       res.status(200).send(body);
     }
