@@ -74,7 +74,7 @@ function getParam(req, name, options) {
     if (options?.required && v === undefined) {
       if (options?.newErrorMessage) throw new util.HttpError(`Missing or invalid argument: ${name}'`);
       throw new util.HttpError(`Parameter '${name}' not specified`);
-    } else if (v === undefined && options?.default !== undefined) {
+    } else if (v === undefined) {
       return options?.default;
     }
 
