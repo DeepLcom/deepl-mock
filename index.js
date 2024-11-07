@@ -182,6 +182,7 @@ async function handleTranslate(req, res) {
     getParam(req, 'tag_handling', { default: 'xml', allowedValues: ['html', 'xml'] });
     getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1', true, false] });
     const showBilledCharacters = getParam(req, 'show_billed_characters', { default: false, allowedValues: ['0', '1', true, false] });
+    const modelType = getParam(req, 'model_type', { allowedValues: ['quality_optimized', 'latency_optimized', 'prefer_quality_optimized'] });
 
     // Calculate the character count of the requested translation
     const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);
@@ -198,6 +199,9 @@ async function handleTranslate(req, res) {
           const result = languages.translate(text, targetLang, sourceLang, glossary);
           if (showBilledCharacters) {
             result.billed_characters = text.length;
+          }
+          if (modelType) {
+            result.model_type_used = modelType.replace('prefer_', '');
           }
           return result;
         }),
