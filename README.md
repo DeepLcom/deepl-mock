@@ -119,6 +119,12 @@ This mock server uses simplified calculations to update account usage.
 ### Formality, tag-handling, formatting 
 This mock server does not implement these features, however the API input parameters are validated.
 
+### Model types
+This mock server allows the quality-optimized models for all language pairs,
+unlike the real DeepL API (which supports a subset of language pairs). Note that
+as this mock server does not implement translation, the model type used has no
+impact.
+
 ## Additional checks compared with the DeepL API
 
 ### User-Agent
