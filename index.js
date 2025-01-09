@@ -29,6 +29,8 @@ const auth = require('./auth');
 const documents = require('./documents');
 const glossaries = require('./glossaries');
 const languages = require('./languages');
+const styles = require('./writing_styles');
+const tones = require('./writing_tones');
 const util = require('./util');
 
 const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
@@ -167,10 +169,10 @@ async function handleUsage(req, res) {
 async function handleTranslate(req, res) {
   try {
     const targetLang = getParam(req, 'target_lang', {
-      upper: true, validator: languages.isTargetLanguage,
+      lower: true, validator: languages.isTargetLanguage,
     });
     const sourceLang = getParam(req, 'source_lang', {
-      upper: true, validator: languages.isSourceLanguage,
+      lower: true, validator: languages.isSourceLanguage,
     });
     const textArray = getParam(req, 'text', { multi: true, required: true });
     const glossary = getParamGlossary(req, sourceLang);
@@ -203,6 +205,51 @@ async function handleTranslate(req, res) {
           if (modelType) {
             result.model_type_used = modelType.replace('prefer_', '');
           }
+          return result;
+        }),
+      };
+      res.status(200).send(body);
+    }
+  } catch (err) {
+    res.status(400).send({ message: err.message });
+  }
+}
+
+async function handleRephrase(req, res) {
+  try {
+    const targetLang = getParam(req, 'target_lang', {
+      upper: true,
+      validator: languages.isTargetLanguage,
+    });
+    const textArray = getParam(req, 'text', { multi: true, required: true });
+
+    // The following parameters are validated but not used by the mock server
+    getParam(req, 'writing_style', {
+      upper: true,
+      validator: (style) => styles.isSupportedWritingStyle(style, targetLang),
+    });
+    getParam(req, 'tone', { upper: true, validator: tones.isWritingTone });
+
+    // Calculate the character count of the requested translation
+    const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);
+
+    // Check if session is configured to respond with 429: too-many-requests
+    if (req.session.respond_429_count > 0) {
+      req.session.respond_429_count -= 1;
+      res.status(429).send();
+    } else if (
+      !checkLimit(req.user_account.usage, 'character', totalCharacters)
+    ) {
+      res
+        .status(456)
+        .send({ message: 'Quota for this billing period has been exceeded.' });
+    } else {
+      const body = {
+        improvements: textArray.map((text) => {
+          const result = languages.rephrase(
+            text,
+            targetLang,
+          );
           return result;
         }),
       };
@@ -421,6 +468,10 @@ app.post('/v2/usage', auth, requireUserAgent, handleUsage);
 app.use('/v2/translate', express.json());
 app.get('/v2/translate', auth, requireUserAgent, handleTranslate);
 app.post('/v2/translate', auth, requireUserAgent, handleTranslate);
+
+app.use('/v2/write/rephrase', express.json());
+app.get('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);
+app.post('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);
 
 app.post('/v2/document', auth, requireUserAgent, handleDocument);
 

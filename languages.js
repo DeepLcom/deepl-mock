@@ -8,12 +8,35 @@ const languages = new Map([
   ['CS', { name: 'Czech', type: 'both', text: 'protonový paprsek' }],
   ['DA', { name: 'Danish', type: 'both', text: 'protonstråle' }],
   ['DE', {
-    name: 'German', type: 'both', formality: true, text: 'Protonenstrahl',
+    name: 'German',
+    type: 'both',
+    formality: true,
+    text: 'Protonenstrahl',
+    supports_style: true,
+    supports_tone: true,
   }],
   ['EL', { name: 'Greek', type: 'both', text: 'δέσμη πρωτονίων' }],
-  ['EN', { name: 'English', type: 'source', text: 'proton beam' }],
-  ['EN-GB', { name: 'English (British)', type: 'target', text: 'proton beam' }],
-  ['EN-US', { name: 'English (American)', type: 'target', text: 'proton beam' }],
+  ['EN', {
+    name: 'English',
+    type: 'source',
+    text: 'proton beam',
+    supports_style: true,
+    supports_tone: true,
+  }],
+  ['EN-GB', {
+    name: 'English (British)',
+    type: 'target',
+    text: 'proton beam',
+    supports_style: true,
+    supports_tone: true,
+  }],
+  ['EN-US', {
+    name: 'English (American)',
+    type: 'target',
+    text: 'proton beam',
+    supports_style: true,
+    supports_tone: true,
+  }],
   ['ES', {
     name: 'Spanish', type: 'both', formality: true, text: 'haz de protones',
   }],
@@ -103,6 +126,20 @@ function supportsFormality(langCode, formality) {
   return languages.has(langCodeUpper) && languages.get(langCodeUpper).formality !== undefined;
 }
 
+function supportsWritingStyle(langCode, style) {
+  if (langCode === undefined) return false;
+  if (style.startsWith('prefer_') || style === 'default') return true;
+  const langCodeUpper = langCode.toUpperCase();
+  return languages.has(langCodeUpper) && languages.get(langCodeUpper).supports_style === true;
+}
+
+function supportsWritingTone(langCode, tone) {
+  if (langCode === undefined) return false;
+  if (tone.startsWith('prefer_') || tone === 'default') return true;
+  const langCodeUpper = langCode.toUpperCase();
+  return languages.has(langCodeUpper) && languages.get(langCodeUpper).supports_tone === true;
+}
+
 function getSourceLanguages() {
   const sourceLanguages = [];
   languages.forEach((lang, code) => {
@@ -171,14 +208,25 @@ function translate(input, targetLang, sourceLangIn, glossary) {
   return { detected_source_language: sourceLang, text };
 }
 
+function rephrase(text, targetLang) {
+  return {
+    text: languages.get(targetLang).text,
+    detected_source_language: targetLang.split('-')[0],
+    target_language: targetLang,
+  };
+}
+
 module.exports = {
   isGlossaryLanguage,
   isSourceLanguage,
   getSourceLanguages,
   isTargetLanguage,
   supportsFormality,
+  supportsWritingStyle,
+  supportsWritingTone,
   getTargetLanguages,
   getGlossaryLanguagePairs,
   isGlossarySupportedLanguagePair,
   translate,
+  rephrase,
 };
