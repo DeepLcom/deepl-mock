@@ -169,10 +169,10 @@ async function handleUsage(req, res) {
 async function handleTranslate(req, res) {
   try {
     const targetLang = getParam(req, 'target_lang', {
-      lower: true, validator: languages.isTargetLanguage,
+      upper: true, validator: languages.isTargetLanguage,
     });
     const sourceLang = getParam(req, 'source_lang', {
-      lower: true, validator: languages.isSourceLanguage,
+      upper: true, validator: languages.isSourceLanguage,
     });
     const textArray = getParam(req, 'text', { multi: true, required: true });
     const glossary = getParamGlossary(req, sourceLang);
@@ -230,7 +230,7 @@ async function handleRephrase(req, res) {
     });
     getParam(req, 'tone', { upper: true, validator: tones.isWritingTone });
 
-    // Calculate the character count of the requested translation
+    // Calculate the character count of the requested text improvement
     const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);
 
     // Check if session is configured to respond with 429: too-many-requests
