@@ -2,8 +2,6 @@
 // Use of this source code is governed by an MIT
 // license that can be found in the LICENSE file.
 
-const languages = require('./languages');
-
 const writingTones = new Set([
   'confident',
   'default',
@@ -16,12 +14,6 @@ const writingTones = new Set([
   'prefer_friendly',
 ]);
 
-function isSupportedWritingTone(tone, targetLang) {
-  if (tone === undefined) return false;
-  const toneLower = tone.toLowerCase();
-  return writingTones.has(toneLower) && languages.supportsWritingTone(targetLang, toneLower);
-}
-
 module.exports = {
-  isSupportedWritingTone,
+  writingTones,
 };

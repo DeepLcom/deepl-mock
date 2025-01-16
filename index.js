@@ -29,9 +29,9 @@ const auth = require('./auth');
 const documents = require('./documents');
 const glossaries = require('./glossaries');
 const languages = require('./languages');
-const styles = require('./writing_styles');
-const tones = require('./writing_tones');
 const util = require('./util');
+const writingStyles = require('./writing_styles');
+const writingTones = require('./writing_tones');
 
 const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
 const envVarProxyPort = 'DEEPL_MOCK_PROXY_SERVER_PORT';
@@ -103,6 +103,32 @@ function getParamFormality(req, targetLang) {
     validator: (formality) => {
       if (!languages.supportsFormality(targetLang, formality)) {
         throw new util.HttpError("'formality' is not supported for given 'target_lang'.", 400);
+      }
+    },
+  });
+}
+
+function getParamWritingStyle(req, targetLang) {
+  getParam(req, 'writing_style', {
+    allowedValues: writingStyles,
+    lower: true,
+    validator: (style) => {
+      if (!languages.supportsWritingStyle(targetLang, style)) {
+        const langName = languages.getLanguageName(targetLang);
+        throw new util.HttpError(`Language ${langName} does not support setting a writing style.`, 400);
+      }
+    },
+  });
+}
+
+function getParamTone(req, targetLang) {
+  getParam(req, 'tone', {
+    allowedValues: writingTones,
+    lower: true,
+    validator: (tone) => {
+      if (!languages.supportsWritingTone(targetLang, tone)) {
+        const langName = languages.getLanguageName(targetLang);
+        throw new util.HttpError(`Language ${langName} does not support setting a tone.`, 400);
       }
     },
   });
@@ -219,7 +245,8 @@ async function handleRephrase(req, res) {
   try {
     let targetLang = getParam(req, 'target_lang', {
       upper: true,
-      validator: languages.isTargetLanguage,
+      validator: (langCode) => languages.isTargetLanguage(langCode)
+          && languages.supportsWrite(langCode),
     });
     if (targetLang === 'EN') {
       targetLang = 'EN-US';
@@ -229,11 +256,8 @@ async function handleRephrase(req, res) {
     const textArray = getParam(req, 'text', { multi: true, required: true });
 
     // The following parameters are validated but not used by the mock server
-    getParam(req, 'writing_style', {
-      upper: true,
-      validator: (style) => styles.isSupportedWritingStyle(style, targetLang),
-    });
-    getParam(req, 'tone', { upper: true, validator: tones.isWritingTone });
+    getParamWritingStyle(req, targetLang);
+    getParamTone(req, targetLang);
 
     // Calculate the character count of the requested text improvement
     const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);

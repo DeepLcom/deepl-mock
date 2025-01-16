@@ -12,6 +12,7 @@ const languages = new Map([
     type: 'both',
     formality: true,
     text: 'Protonenstrahl',
+    supports_write: true,
     supports_style: true,
     supports_tone: true,
   }],
@@ -20,6 +21,7 @@ const languages = new Map([
     name: 'English',
     type: 'source',
     text: 'proton beam',
+    supports_write: true,
     supports_style: true,
     supports_tone: true,
   }],
@@ -27,6 +29,7 @@ const languages = new Map([
     name: 'English (British)',
     type: 'target',
     text: 'proton beam',
+    supports_write: true,
     supports_style: true,
     supports_tone: true,
   }],
@@ -34,21 +37,34 @@ const languages = new Map([
     name: 'English (American)',
     type: 'target',
     text: 'proton beam',
+    supports_write: true,
     supports_style: true,
     supports_tone: true,
   }],
   ['ES', {
-    name: 'Spanish', type: 'both', formality: true, text: 'haz de protones',
+    name: 'Spanish',
+    type: 'both',
+    formality: true,
+    text: 'haz de protones',
+    supports_write: true,
   }],
   ['ET', { name: 'Estonian', type: 'both', text: 'prootonikiirgus' }],
   ['FI', { name: 'Finnish', type: 'both', text: 'protonisäde' }],
   ['FR', {
-    name: 'French', type: 'both', formality: true, text: 'faisceau de protons',
+    name: 'French',
+    type: 'both',
+    formality: true,
+    text: 'faisceau de protons',
+    supports_write: true,
   }],
   ['HU', { name: 'Hungarian', type: 'both', text: 'protonnyaláb' }],
   ['ID', { name: 'Indonesian', type: 'both', text: 'berkas proton' }],
   ['IT', {
-    name: 'Italian', type: 'both', formality: true, text: 'fascio di protoni',
+    name: 'Italian',
+    type: 'both',
+    formality: true,
+    text: 'fascio di protoni',
+    supports_write: true,
   }],
   ['JA', {
     name: 'Japanese', type: 'both', formality: true, text: '陽子ビーム',
@@ -63,12 +79,22 @@ const languages = new Map([
   ['PL', {
     name: 'Polish', type: 'both', formality: true, text: 'wiązka protonów',
   }],
-  ['PT', { name: 'Portuguese', type: 'source', text: 'feixe de prótons' }],
+  ['PT', {
+    name: 'Portuguese', type: 'source', text: 'feixe de prótons', supports_write: true,
+  }],
   ['PT-BR', {
-    name: 'Portuguese (Brazilian)', type: 'target', formality: true, text: 'feixe de prótons',
+    name: 'Portuguese (Brazilian)',
+    type: 'target',
+    formality: true,
+    text: 'feixe de prótons',
+    supports_write: true,
   }],
   ['PT-PT', {
-    name: 'Portuguese (European)', type: 'target', formality: true, text: 'feixe de prótons',
+    name: 'Portuguese (European)',
+    type: 'target',
+    formality: true,
+    text: 'feixe de prótons',
+    supports_write: true,
   }],
   ['RO', { name: 'Romanian', type: 'both', text: 'fascicul de protoni' }],
   ['RU', {
@@ -93,6 +119,12 @@ const glossaryLanguagePairs = glossaryLanguages.flatMap(
     }),
   ),
 ).filter((p) => p);
+
+function getLanguageName(langCode) {
+  if (langCode === undefined) return true;
+  const langCodeUpper = langCode.toUpperCase();
+  return languages.get(langCodeUpper)?.name;
+}
 
 function isSourceLanguage(langCode) {
   // Unspecified source_lang parameter activates auto-detect
@@ -128,6 +160,12 @@ function supportsFormality(langCode, formality) {
   if (formality !== undefined && formality.startsWith('prefer_')) return true;
   const langCodeUpper = langCode.toUpperCase();
   return languages.has(langCodeUpper) && languages.get(langCodeUpper).formality !== undefined;
+}
+
+function supportsWrite(langCode) {
+  if (langCode === undefined) return false;
+  const langCodeUpper = langCode.toUpperCase();
+  return languages.has(langCodeUpper) && languages.get(langCodeUpper).supports_write === true;
 }
 
 function supportsWritingStyle(langCode, style) {
@@ -221,11 +259,13 @@ function rephrase(_, targetLang) {
 }
 
 module.exports = {
+  getLanguageName,
   isGlossaryLanguage,
   isSourceLanguage,
   getSourceLanguages,
   isTargetLanguage,
   supportsFormality,
+  supportsWrite,
   supportsWritingStyle,
   supportsWritingTone,
   getTargetLanguages,

@@ -2,8 +2,6 @@
 // Use of this source code is governed by an MIT
 // license that can be found in the LICENSE file.
 
-const languages = require('./languages');
-
 const writingStyles = new Set([
   'academic',
   'business',
@@ -16,12 +14,6 @@ const writingStyles = new Set([
   'simple',
 ]);
 
-function isSupportedWritingStyle(style, targetLang) {
-  if (style === undefined) return false;
-  const styleLower = style.toLowerCase();
-  return writingStyles.has(styleLower) && languages.supportsWritingStyle(targetLang, styleLower);
-}
-
 module.exports = {
-  isSupportedWritingStyle,
+  writingStyles,
 };
