@@ -38,4 +38,20 @@ class HttpError extends Error {
   }
 }
 
-module.exports = { scheduleCleanup, HttpError };
+// This is a simplified implementation of this conversion that won't work for all
+// BCP-47 codes, but all we currently use at DeepL.
+// Before further complicating this implementation, it might make sense to switch
+// to a library.
+function convertToBcp47(langCode) {
+  let tokens = langCode.split('-');
+  const numTokens = tokens.length;
+  tokens = tokens.map((token, index) => {
+    if (index === numTokens - 1) {
+      return token.toUppercase();
+    }
+    return token.toLowerCase();
+  });
+  return tokens.join('-');
+}
+
+module.exports = { convertToBcp47, scheduleCleanup, HttpError };

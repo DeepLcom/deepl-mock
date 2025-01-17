@@ -248,7 +248,7 @@ async function handleRephrase(req, res) {
         improvements: textArray.map((text) => {
           const result = languages.rephrase(
             text,
-            targetLang,
+            util.convertToBcp47(targetLang),
           );
           return result;
         }),
