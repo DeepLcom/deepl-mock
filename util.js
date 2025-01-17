@@ -47,7 +47,7 @@ function convertToBcp47(langCode) {
   const numTokens = tokens.length;
   tokens = tokens.map((token, index) => {
     if (index === numTokens - 1) {
-      return token.toUppercase();
+      return token.toUpperCase();
     }
     return token.toLowerCase();
   });
