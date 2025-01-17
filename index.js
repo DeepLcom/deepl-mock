@@ -217,10 +217,15 @@ async function handleTranslate(req, res) {
 
 async function handleRephrase(req, res) {
   try {
-    const targetLang = getParam(req, 'target_lang', {
+    let targetLang = getParam(req, 'target_lang', {
       upper: true,
       validator: languages.isTargetLanguage,
     });
+    if (targetLang === 'EN') {
+      targetLang = 'EN-US';
+    } else if (targetLang === 'PT') {
+      targetLang = 'PT-PT';
+    }
     const textArray = getParam(req, 'text', { multi: true, required: true });
 
     // The following parameters are validated but not used by the mock server

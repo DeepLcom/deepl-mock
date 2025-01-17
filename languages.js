@@ -104,6 +104,10 @@ function isSourceLanguage(langCode) {
 function isTargetLanguage(langCode) {
   if (langCode === undefined) return false;
   const langCodeUpper = langCode.toUpperCase();
+  if (langCodeUpper === 'EN' || langCodeUpper === 'PT') {
+    // Hack to emulate default variants being chosen in real API.
+    return true;
+  }
   return languages.has(langCodeUpper) && ['target', 'both'].includes(languages.get(langCodeUpper).type);
 }
 
