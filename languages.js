@@ -208,9 +208,9 @@ function translate(input, targetLang, sourceLangIn, glossary) {
   return { detected_source_language: sourceLang, text };
 }
 
-function rephrase(text, targetLang) {
+function rephrase(_, targetLang) {
   return {
-    text: languages.get(targetLang).text,
+    text: languages.get(targetLang.toUpperCase()).text,
     detected_source_language: targetLang.split('-')[0],
     target_language: targetLang,
   };
