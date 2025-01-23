@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.1] - 2025-01-23
+### Added
+* Fix allowed values for writing styles.
+
 ## [1.16.0] - 2025-01-22
 ### Added
 * Added checks for supported languages in the Write API.
@@ -38,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.14.0] - 2024-11-15
 ### Added
-* `/translate` endpoint: added `model_type` request parameter and 
+* `/translate` endpoint: added `model_type` request parameter and
   `model_type_used` response parameter.
 
 
@@ -47,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Add supported glossary languages: Danish (`'da'`), Norwegian (bokmål)
   (`'nb'`), and Swedish (`'sv'`).
 * Add billed characters to translate-text function: (`show_billed_characters`
-  request parameter, and `billed_characters` response parameter). 
+  request parameter, and `billed_characters` response parameter).
 
 
 ## [1.12.0] - 2024-04-08
@@ -55,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Verify keepalive is used by clients by rejecting session reuse on new sockets,
   except in case where no-response mode is active
 * Add `mock-server-session-allow-missing-user-agent` session header to override
-  missing User-Agent check. 
+  missing User-Agent check.
 * Add supported glossary languages: Portuguese (`'PT'`), Russian (`'RU'`), and Chinese (`'ZH'`).
 * Add `output_format` parameter for document upload, to specify the desired file
   format of the output file
@@ -136,9 +140,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Add `error_message` field to document status if an error occurs during document translation fails,
   and check if detected source language matches target language. The deprecated `message` field is
-  also added to match the live API. 
+  also added to match the live API.
 ### Changed
-* Update name for the target language `zh` to "Chinese (simplified)". 
+* Update name for the target language `zh` to "Chinese (simplified)".
 
 
 ## [1.3.2] - 2022-03-01
@@ -159,19 +163,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Add contribution guidelines -- currently we are unable to accept Pull Requests.
 ### Changed
-* npm start command now uses environment variables if defined for DEEPL_MOCK_SERVER_PORT and 
+* npm start command now uses environment variables if defined for DEEPL_MOCK_SERVER_PORT and
   DEEPL_MOCK_PROXY_SERVER_PORT.
-* Update `package-lock.json`: upgrade `follow-redirects` to 1.14.7 to silence security warnings. 
+* Update `package-lock.json`: upgrade `follow-redirects` to 1.14.7 to silence security warnings.
   Note: security vulnerability [CVE-2022-0155](https://nvd.nist.gov/vuln/detail/CVE-2022-0155)
   affects cross-domain proxying and has no impact here because the proxy server is restricted to
-  target only the mock server itself.   
+  target only the mock server itself.
 ### Fixed
 * Remove "localhost" from listen() calls.
 
 
 ## [1.3.0] - 2021-11-15
 ### Added
-* Add glossary support for document translation. 
+* Add glossary support for document translation.
 * Add missing argument validation for: formality, split_sentences, preserve_formatting and
   outline_detection.
 * Add an optional proxy server that proxies requests to the mock server, listening on port 3001 by
@@ -205,7 +209,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2021-08-12
 ### Added
-* Add support for Authorization header with `DeepL-Auth-Key ` prefix. 
+* Add support for Authorization header with `DeepL-Auth-Key ` prefix.
 ### Fixed
 * Fix bug in error responses introduced in eslint refactoring.
 

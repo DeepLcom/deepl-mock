@@ -30,8 +30,8 @@ const documents = require('./documents');
 const glossaries = require('./glossaries');
 const languages = require('./languages');
 const util = require('./util');
-const writingStyles = require('./writing_styles');
-const writingTones = require('./writing_tones');
+const { writingStyles } = require('./writing_styles');
+const { writingTones } = require('./writing_tones');
 
 const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
 const envVarProxyPort = 'DEEPL_MOCK_PROXY_SERVER_PORT';

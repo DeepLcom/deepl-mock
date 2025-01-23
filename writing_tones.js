@@ -2,7 +2,7 @@
 // Use of this source code is governed by an MIT
 // license that can be found in the LICENSE file.
 
-const writingTones = new Set([
+const writingTones = [
   'confident',
   'default',
   'diplomatic',
@@ -12,7 +12,7 @@ const writingTones = new Set([
   'prefer_diplomatic',
   'prefer_enthusiastic',
   'prefer_friendly',
-]);
+];
 
 module.exports = {
   writingTones,
