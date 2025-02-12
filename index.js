@@ -30,8 +30,8 @@ const documents = require('./documents');
 const glossaries = require('./glossaries');
 const languages = require('./languages');
 const util = require('./util');
-const { writingStyles } = require('./writing_styles');
-const { writingTones } = require('./writing_tones');
+const { writingStyles, WritingStyle } = require('./writing_styles');
+const { writingTones, WritingTone } = require('./writing_tones');
 
 const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
 const envVarProxyPort = 'DEEPL_MOCK_PROXY_SERVER_PORT';
@@ -97,7 +97,7 @@ function getParam(req, name, options) {
 }
 
 function getParamFormality(req, targetLang) {
-  getParam(req, 'formality', {
+  return getParam(req, 'formality', {
     default: 'default',
     allowedValues: ['less', 'more', 'default', 'prefer_less', 'prefer_more'],
     validator: (formality) => {
@@ -109,7 +109,7 @@ function getParamFormality(req, targetLang) {
 }
 
 function getParamWritingStyle(req, targetLang) {
-  getParam(req, 'writing_style', {
+  return getParam(req, 'writing_style', {
     allowedValues: writingStyles,
     lower: true,
     validator: (style) => {
@@ -122,7 +122,7 @@ function getParamWritingStyle(req, targetLang) {
 }
 
 function getParamTone(req, targetLang) {
-  getParam(req, 'tone', {
+  return getParam(req, 'tone', {
     allowedValues: writingTones,
     lower: true,
     validator: (tone) => {
@@ -256,8 +256,14 @@ async function handleRephrase(req, res) {
     const textArray = getParam(req, 'text', { multi: true, required: true });
 
     // The following parameters are validated but not used by the mock server
-    getParamWritingStyle(req, targetLang);
-    getParamTone(req, targetLang);
+    const writingStyle = getParamWritingStyle(req, targetLang);
+    const tone = getParamTone(req, targetLang);
+    if (writingStyle !== undefined && writingStyle !== null
+        && writingStyle !== WritingStyle.DEFAULT && writingStyle !== WritingStyle.PREFER_DEFAULT
+        && tone !== undefined && tone !== null
+        && tone !== WritingTone.DEFAULT && tone !== WritingTone.PREFER_DEFAULT) {
+      throw new util.HttpError('Bad request. Reason: Both writing_style and tone defined. Currently only style OR tone can be chosen for a single request.', 400);
+    }
 
     // Calculate the character count of the requested text improvement
     const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);
