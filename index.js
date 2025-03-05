@@ -504,6 +504,10 @@ app.use('/v2/translate', express.json());
 app.get('/v2/translate', auth, requireUserAgent, handleTranslate);
 app.post('/v2/translate', auth, requireUserAgent, handleTranslate);
 
+// (internal only) Note that this is not a real endpoint on the DeepL API. It is only included
+// to support testing path overrides in the client libraries.
+app.post('/v2/translate_secondary', auth, requireUserAgent, handleTranslate);
+
 app.use('/v2/write/rephrase', express.json());
 app.get('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);
 app.post('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);

@@ -1,7 +1,7 @@
 {
   "name": "deepl-mock",
   "description": "DeepL API mock server",
-  "version": "1.16.2",
+  "version": "1.16.3",
   "author": "DeepL SE <open-source@deepl.com>",
   "license": "MIT",
   "repository": "DeepLcom/deepl-mock",
