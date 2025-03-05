@@ -8,12 +8,10 @@ variables:
   GITLAB_ADVANCED_SAST_ENABLED: 'true'
 
 stages:
-- test
-- sast
-
-sast:
-  tags:
-  - k8s
+  - sast
+  - check
+  - test
+  - build
 
 gitlab-advanced-sast:
   stage: sast
