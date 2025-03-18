@@ -1,4 +1,4 @@
-// Copyright 2022 DeepL SE (https://www.deepl.com)
+// Copyright 2025 DeepL SE (https://www.deepl.com)
 // Use of this source code is governed by an MIT
 // license that can be found in the LICENSE file.
 
@@ -213,11 +213,17 @@ function getGlossaryLanguagePairs() {
   return glossaryLanguagePairs;
 }
 
-function translateLine(input, targetLang, glossary) {
+function getBaseLanguageCode(langCode) {
+  if (langCode.toUpperCase() === 'EN-GB' || langCode.toUpperCase() === 'EN-US') return 'EN';
+  if (langCode.toUpperCase() === 'PT-BR' || langCode.toUpperCase() === 'PT-PT') return 'PT';
+  return langCode;
+}
+
+function translateLine(input, sourceLang, targetLang, glossary) {
   if (input === '') return '';
 
   if (glossary) {
-    const glossaryResult = glossary.translate(input);
+    const glossaryResult = glossary.translate(input, sourceLang, targetLang);
     if (glossaryResult) return glossaryResult;
   }
 
@@ -242,7 +248,7 @@ function translate(input, targetLang, sourceLangIn, glossary) {
   }
 
   // Split into lines and translate individually
-  const text = input.split('\n').map((line) => (translateLine(line, targetLang, glossary))).join('\n');
+  const text = input.split('\n').map((line) => (translateLine(line, sourceLang, targetLang, glossary))).join('\n');
 
   const textShort = text.length < 50 ? text : `${text.slice(0, 47)}...`;
   const inputShort = input.length < 50 ? input : `${input.slice(0, 47)}...`;
@@ -270,6 +276,7 @@ module.exports = {
   supportsWritingTone,
   getTargetLanguages,
   getGlossaryLanguagePairs,
+  getBaseLanguageCode,
   isGlossarySupportedLanguagePair,
   translate,
   rephrase,

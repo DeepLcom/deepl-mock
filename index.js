@@ -1,4 +1,4 @@
-// Copyright 2022 DeepL SE (https://www.deepl.com)
+// Copyright 2025 DeepL SE (https://www.deepl.com)
 // Use of this source code is governed by an MIT
 // license that can be found in the LICENSE file.
 
@@ -27,11 +27,12 @@ const sessions = require('./sessions');
 app.use(sessions());
 const auth = require('./auth');
 const documents = require('./documents');
-const glossaries = require('./glossaries');
+const glossariesV2 = require('./glossariesV2');
+const glossariesV3 = require('./glossariesV3');
 const languages = require('./languages');
-const util = require('./util');
 const { writingStyles, WritingStyle } = require('./writing_styles');
 const { writingTones, WritingTone } = require('./writing_tones');
+const util = require('./util');
 
 const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
 const envVarProxyPort = 'DEEPL_MOCK_PROXY_SERVER_PORT';
@@ -137,11 +138,15 @@ function getParamTone(req, targetLang) {
 function getParamGlossary(req, sourceLang) {
   const { authKey } = req.user_account;
   const glossaryId = getParam(req, 'glossary_id',
-    { validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)) });
+    { validator: (id) => (id === undefined || glossariesV2.isValidGlossaryId(id)) });
   if (glossaryId !== undefined && sourceLang === undefined) {
     throw new util.HttpError('Use of a glossary requires the source_lang parameter to be specified', 400);
   }
-  return glossaryId === undefined ? undefined : glossaries.getGlossary(glossaryId, authKey);
+  try {
+    return glossaryId === undefined ? undefined : glossariesV2.getGlossary(glossaryId, authKey);
+  } catch {
+    return glossaryId === undefined ? undefined : glossariesV3.getGlossary(glossaryId, authKey);
+  }
 }
 
 function getParamGlossaryId(req, required = true) {
@@ -149,8 +154,38 @@ function getParamGlossaryId(req, required = true) {
     {
       params: true,
       required,
-      validator: (id) => (id === undefined || glossaries.isValidGlossaryId(id)),
+      validator: (id) => (id === undefined || glossariesV2.isValidGlossaryId(id)),
     });
+}
+
+function getParamSourceLang(req, required = true) {
+  return getParam(req, 'source_lang',
+    {
+      required,
+      upper: true,
+      validator: languages.isGlossaryLanguage,
+    });
+}
+
+function getParamTargetLang(req, required = true) {
+  return getParam(req, 'target_lang',
+    {
+      required,
+      upper: true,
+      validator: languages.isGlossaryLanguage,
+    });
+}
+
+function getParamDictionaries(req, required = true) {
+  const glossaryDicts = getParam(req, 'dictionaries', {
+    required, multi: true,
+  });
+  return glossaryDicts.map((glossaryDict) => ({
+    sourceLang: glossaryDict.source_lang,
+    targetLang: glossaryDict.target_lang,
+    entries: glossaryDict.entries,
+    entriesFormat: glossaryDict.entries_format,
+  }));
 }
 
 function checkLimit(usage, type, request) {
@@ -398,17 +433,17 @@ async function handleDocumentDownload(req, res) {
   }
 }
 
-async function handleGlossaryList(req, res) {
+async function handleV2GlossaryList(req, res) {
   try {
     // Access glossary_id param from path, note: glossary_id is optional, so may be undefined
     const glossaryId = getParamGlossaryId(req, false);
     const { authKey } = req.user_account;
 
     if (glossaryId !== undefined) {
-      const glossaryInfo = glossaries.getGlossaryInfo(glossaryId, authKey);
+      const glossaryInfo = glossariesV2.getGlossaryInfo(glossaryId, authKey);
       res.status(200).send(glossaryInfo);
     } else {
-      const glossaryList = glossaries.getGlossaryInfoList(authKey);
+      const glossaryList = glossariesV2.getGlossaryInfoList(authKey);
       res.status(200).send({ glossaries: glossaryList });
     }
   } catch (err) {
@@ -417,13 +452,55 @@ async function handleGlossaryList(req, res) {
   }
 }
 
-async function handleGlossaryEntries(req, res) {
+async function handleV3GlossaryList(req, res) {
+  try {
+    // Access glossary_id param from path, note: glossary_id is optional, so may be undefined
+    const glossaryId = getParamGlossaryId(req, false);
+    const { authKey } = req.user_account;
+
+    if (glossaryId !== undefined) {
+      const glossaryInfo = glossariesV3.getGlossaryInfo(glossaryId, authKey);
+      res.status(200).send(glossaryInfo);
+    } else {
+      const glossaryList = glossariesV3.getGlossaryInfoList(authKey);
+      res.status(200).send({ glossaries: glossaryList });
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
+async function handleV2GlossaryEntries(req, res) {
   try {
     if (req.accepts('text/tab-separated-values')) {
       const glossaryId = getParamGlossaryId(req);
       const { authKey } = req.user_account;
-      const entries = glossaries.getGlossaryEntries(glossaryId, authKey);
+      const entries = glossariesV2.getGlossaryEntries(glossaryId, authKey);
       res.contentType('text/tab-separated-values; charset=UTF-8');
+      res.status(200).send(entries);
+    } else {
+      res.status(415).send({ message: 'No supported media type specified in Accept header' });
+    }
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
+async function handleV3GlossaryEntries(req, res) {
+  try {
+    if (req.accepts('text/tab-separated-values')) {
+      const glossaryId = getParamGlossaryId(req);
+      const { authKey } = req.user_account;
+      const sourceLang = getParamSourceLang(req);
+      const targetLang = getParamTargetLang(req);
+      const entries = glossariesV3.getDictionaryEntries(
+        glossaryId,
+        sourceLang,
+        targetLang,
+        authKey,
+      );
       res.status(200).send(entries);
     } else {
       res.status(415).send({ message: 'No supported media type specified in Accept header' });
@@ -447,20 +524,20 @@ function handleGlossaryLanguages(req, res) {
   }
 }
 
-async function handleGlossaryCreate(req, res) {
+async function handleV2GlossaryCreate(req, res) {
   try {
     const { authKey } = req.user_account;
 
+    const name = getParam(req, 'name', {
+      required: true,
+      newErrorMessage: true,
+      validator: (value) => value.length !== 0,
+    });
     const targetLang = getParam(req, 'target_lang', {
       upper: true, validator: languages.isGlossaryLanguage,
     });
     const sourceLang = getParam(req, 'source_lang', {
       upper: true, validator: languages.isGlossaryLanguage,
-    });
-    const name = getParam(req, 'name', {
-      required: true,
-      newErrorMessage: true,
-      validator: (value) => value.length !== 0,
     });
     const entries = getParam(req, 'entries', { required: true });
     const entriesFormat = getParam(req, 'entries_format', {
@@ -471,7 +548,7 @@ async function handleGlossaryCreate(req, res) {
         }
       },
     });
-    const glossaryInfo = await glossaries.createGlossary(name, authKey, targetLang, sourceLang,
+    const glossaryInfo = await glossariesV2.createGlossary(name, authKey, targetLang, sourceLang,
       entriesFormat, entries);
     res.status(201).send(glossaryInfo);
   } catch (err) {
@@ -480,12 +557,106 @@ async function handleGlossaryCreate(req, res) {
   }
 }
 
-async function handleGlossaryDelete(req, res) {
+async function handleV3GlossaryCreate(req, res) {
+  try {
+    const { authKey } = req.user_account;
+
+    const name = getParam(req, 'name', {
+      required: true,
+      newErrorMessage: true,
+      validator: (value) => value.length !== 0,
+    });
+    const glossaryDicts = getParamDictionaries(req);
+
+    const glossaryInfo = await glossariesV3.createGlossary(name, authKey, glossaryDicts);
+    res.status(201).send(glossaryInfo);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
+async function handleV2GlossaryDelete(req, res) {
   try {
     const glossaryId = getParamGlossaryId(req);
     const { authKey } = req.user_account;
-    glossaries.removeGlossary(glossaryId, authKey);
+    glossariesV2.removeGlossary(glossaryId, authKey);
     res.status(204).send();
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
+async function handleV3GlossaryDelete(req, res) {
+  try {
+    const glossaryId = getParamGlossaryId(req);
+    const { authKey } = req.user_account;
+    glossariesV3.removeGlossary(glossaryId, authKey);
+    res.status(204).send();
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
+async function handleDictionaryDelete(req, res) {
+  try {
+    const glossaryId = getParamGlossaryId(req);
+    const { authKey } = req.user_account;
+    const sourceLang = getParamSourceLang(req);
+    const targetLang = getParamTargetLang(req);
+    glossariesV3.removeDictionary(glossaryId, sourceLang, targetLang, authKey);
+    res.status(204).send();
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
+async function handleGlossaryPatch(req, res) {
+  try {
+    const glossaryId = getParamGlossaryId(req);
+    const { authKey } = req.user_account;
+    const name = getParam(req, 'name', {
+      required: false,
+      newErrorMessage: true,
+      validator: (value) => value.length !== 0,
+    });
+    const glossaryDicts = getParamDictionaries(req, false);
+
+    const glossary = await glossariesV3.patchGlossary(glossaryId, name, glossaryDicts, authKey);
+    res.status(200).send(glossary);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
+async function handleDictionaryPut(req, res) {
+  try {
+    const glossaryId = getParamGlossaryId(req);
+    const { authKey } = req.user_account;
+    const sourceLang = getParamSourceLang(req);
+    const targetLang = getParamTargetLang(req);
+    const entries = getParam(req, 'entries', { required: true });
+    const entriesFormat = getParam(req, 'entries_format', {
+      required: true,
+      validator: (value) => {
+        if (value !== 'tsv' && value !== 'csv') {
+          throw new util.HttpError('Unsupported entry format specified', 401);
+        }
+      },
+    });
+    const glossary = await glossariesV3.putDictionary(
+      glossaryId,
+      sourceLang,
+      targetLang,
+      entries,
+      entriesFormat,
+      authKey,
+    );
+    res.status(200).send(glossary);
   } catch (err) {
     console.log(err.message);
     res.status(err.status()).send();
@@ -525,11 +696,22 @@ app.post('/v2/document/:document_id/result', auth, requireUserAgent, handleDocum
 // Maximum glossary size is 10MiB, but there is some extra request overhead
 app.use('/v2/glossaries', express.json({ limit: '11mb' }));
 app.get('/v2/glossary-language-pairs', auth, requireUserAgent, handleGlossaryLanguages);
-app.post('/v2/glossaries', auth, requireUserAgent, handleGlossaryCreate);
-app.get('/v2/glossaries', auth, requireUserAgent, handleGlossaryList);
-app.get('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryList);
-app.get('/v2/glossaries/:glossary_id/entries', auth, requireUserAgent, handleGlossaryEntries);
-app.delete('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryDelete);
+app.post('/v2/glossaries', auth, requireUserAgent, handleV2GlossaryCreate.bind(null));
+app.get('/v2/glossaries', auth, requireUserAgent, handleV2GlossaryList.bind(null));
+app.get('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleV2GlossaryList.bind(null));
+app.get('/v2/glossaries/:glossary_id/entries', auth, requireUserAgent, handleV2GlossaryEntries.bind(null));
+app.delete('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleV2GlossaryDelete.bind(null));
+
+// Maximum glossary size is 10MiB, but there is some extra request overhead
+app.use('/v3/glossaries', express.json({ limit: '11mb' }));
+app.post('/v3/glossaries', auth, requireUserAgent, handleV3GlossaryCreate.bind(null));
+app.get('/v3/glossaries', auth, requireUserAgent, handleV3GlossaryList.bind(null));
+app.get('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleV3GlossaryList.bind(null));
+app.get('/v3/glossaries/:glossary_id/entries', auth, requireUserAgent, handleV3GlossaryEntries.bind(null));
+app.delete('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleV3GlossaryDelete.bind(null));
+app.delete('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryDelete);
+app.patch('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryPatch);
+app.put('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryPut);
 
 app.all('/*', (req, res) => {
   res.status(404).send();
