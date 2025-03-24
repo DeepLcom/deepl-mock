@@ -8,13 +8,12 @@ variables:
   GITLAB_ADVANCED_SAST_ENABLED: 'true'
 
 stages:
-  - sast
   - check
   - test
   - build
 
 gitlab-advanced-sast:
-  stage: sast
+  stage: check
   rules:
     - when: always
   variables:
@@ -24,7 +23,7 @@ gitlab-advanced-sast:
     SAST_SCANNER_ALLOWED_CLI_OPTS: --multi-core 8
 
 semgrep-sast:
-  stage: sast
+  stage: check
   rules:
     - when: always
   variables:
