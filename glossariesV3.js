@@ -131,11 +131,17 @@ async function createGlossary(name, authKey, dictionaries) {
     used: new Date(),
     authKey,
     dictionaries: glossaryDictionaries,
-    translate: (input, sourceLang, targetLang) => translateWithGlossary(
-      glossaryDictionaries.find((glossaryDict) => glossaryDict.sourceLang
-      === languages.getBaseLanguageCode(sourceLang) && glossaryDict.targetLang
-      === languages.getBaseLanguageCode(targetLang)).entryList, input,
-    ),
+    translate: (input, sourceLang, targetLang) => {
+      try {
+        return translateWithGlossary(
+          glossaryDictionaries.find((glossaryDict) => glossaryDict.sourceLang.toUpperCase()
+          === languages.getBaseLanguageCode(sourceLang) && glossaryDict.targetLang.toUpperCase()
+          === languages.getBaseLanguageCode(targetLang)).entryList, input,
+        );
+      } catch {
+        throw new util.HttpError('Glossary dictionary not found', 404);
+      }
+    },
   };
   glossaries.set(glossaryId, glossary);
   console.log(`Created glossary "${glossary.name}" (${glossaryId})`);
@@ -171,8 +177,8 @@ function getDictionaryEntries(glossaryId, sourceLang, targetLang, authKey) {
   if (!languages.isGlossarySupportedLanguagePair(sourceLang, targetLang)) {
     throw new util.HttpError('Unsupported glossary source and target language pair', 400);
   }
-  const dictionary = glossary.dictionaries.filter((dict) => dict.sourceLang
-    === sourceLang && dict.targetLang === targetLang)[0];
+  const dictionary = glossary.dictionaries.filter((dict) => dict.sourceLang.toUpperCase()
+    === sourceLang.toUpperCase() && dict.targetLang.toUpperCase() === targetLang.toUpperCase())[0];
   if (dictionary == null) {
     throw new util.HttpError('Dictionary not found', 404);
   }
@@ -199,13 +205,13 @@ function removeDictionary(glossaryId, sourceLang, targetLang, authKey) {
   if (!languages.isGlossarySupportedLanguagePair(sourceLang, targetLang)) {
     throw new util.HttpError('Unsupported glossary source and target language pair', 400);
   }
-  const dictionary = glossary.dictionaries.filter((dict) => dict.sourceLang
-    === sourceLang && dict.targetLang === targetLang)[0];
+  const dictionary = glossary.dictionaries.filter((dict) => dict.sourceLang.toUpperCase()
+    === sourceLang.toUpperCase() && dict.targetLang.toUpperCase() === targetLang.toUpperCase())[0];
   if (dictionary == null) {
     throw new util.HttpError('Dictionary not found', 404);
   }
-  const glossaryDictsToKeep = glossary.dictionaries.filter((dict) => dict.sourceLang
-    !== sourceLang && dict.targetLang !== targetLang);
+  const glossaryDictsToKeep = glossary.dictionaries.filter((dict) => dict.sourceLang.toUpperCase()
+    !== sourceLang.toUpperCase() && dict.targetLang.toUpperCase() !== targetLang.toUpperCase());
   console.log(`Removing dictionary for source language ${dictionary.sourceLang} and target `
     + `language ${dictionary.targetLang} in glossary "${glossary.name}" (${glossaryId})`);
   glossary.dictionaries = glossaryDictsToKeep;

@@ -490,21 +490,17 @@ async function handleV2GlossaryEntries(req, res) {
 
 async function handleV3GlossaryEntries(req, res) {
   try {
-    if (req.accepts('text/tab-separated-values')) {
-      const glossaryId = getParamGlossaryId(req);
-      const { authKey } = req.user_account;
-      const sourceLang = getParamSourceLang(req);
-      const targetLang = getParamTargetLang(req);
-      const entries = glossariesV3.getDictionaryEntries(
-        glossaryId,
-        sourceLang,
-        targetLang,
-        authKey,
-      );
-      res.status(200).send(entries);
-    } else {
-      res.status(415).send({ message: 'No supported media type specified in Accept header' });
-    }
+    const glossaryId = getParamGlossaryId(req);
+    const { authKey } = req.user_account;
+    const sourceLang = getParamSourceLang(req);
+    const targetLang = getParamTargetLang(req);
+    const entries = glossariesV3.getDictionaryEntries(
+      glossaryId,
+      sourceLang,
+      targetLang,
+      authKey,
+    );
+    res.status(200).send(entries);
   } catch (err) {
     console.log(err.message);
     res.status(err.status()).send();

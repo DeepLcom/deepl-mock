@@ -150,6 +150,7 @@ function isGlossaryLanguage(langCode) {
 }
 
 function isGlossarySupportedLanguagePair(sourceLang, targetLang) {
+  if (sourceLang === undefined || targetLang === undefined) return false;
   return glossaryLanguages.includes(sourceLang.toLowerCase())
       && glossaryLanguages.includes(targetLang.toLowerCase());
 }

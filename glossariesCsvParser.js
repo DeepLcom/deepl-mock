@@ -24,8 +24,8 @@ function convertGlossaryEntriesCsvToList(entriesCsv, glossarySourceLang, glossar
         if (sourceEntry === undefined || targetEntry === undefined) return;
         // Ignore lines where the source lang or target lang do not match glossary lang
         if (sourceLang !== undefined && targetLang !== undefined
-                    && sourceLang.toUpperCase() !== glossarySourceLang
-                    && targetLang.toUpperCase() !== glossaryTargetLang) return;
+                    && sourceLang.toUpperCase() !== glossarySourceLang.toUpperCase()
+                    && targetLang.toUpperCase() !== glossaryTargetLang.toUpperCase()) return;
         results.push({ source: sourceEntry, target: targetEntry });
       })
       .on('end', () => {
