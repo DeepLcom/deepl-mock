@@ -11,6 +11,11 @@ function convertGlossaryEntriesCsvToList(entriesCsv, glossarySourceLang, glossar
     throw new util.HttpError('Bad request', 400, 'Missing or invalid argument: entries');
   }
 
+  const glossaryLangPair = {
+    sourceLang: glossarySourceLang,
+    targetLang: glossaryTargetLang,
+  };
+
   return new Promise(((resolve, reject) => {
     const readable = Readable.from([entriesCsv]);
     const results = [];
@@ -18,14 +23,13 @@ function convertGlossaryEntriesCsvToList(entriesCsv, glossarySourceLang, glossar
       .on('data', (data) => {
         const sourceEntry = data[0];
         const targetEntry = data[1];
-        const sourceLang = data[2];
-        const targetLang = data[3];
+        const langPair = { sourceLang: data[2], targetLang: data[3] };
         // Ignore empty lines
         if (sourceEntry === undefined || targetEntry === undefined) return;
         // Ignore lines where the source lang or target lang do not match glossary lang
-        if (sourceLang !== undefined && targetLang !== undefined
-                    && sourceLang.toUpperCase() !== glossarySourceLang.toUpperCase()
-                    && targetLang.toUpperCase() !== glossaryTargetLang.toUpperCase()) return;
+        if (langPair.sourceLang !== undefined && langPair.targetLang !== undefined
+                    && !util.langPairMatches(langPair, glossaryLangPair)
+        ) return;
         results.push({ source: sourceEntry, target: targetEntry });
       })
       .on('end', () => {

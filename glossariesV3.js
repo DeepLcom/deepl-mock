@@ -59,6 +59,21 @@ function convertGlossaryDictionaryTsvToList(entriesTsv) {
   return entryList;
 }
 
+function mergeEntryLists(originalEntryList, patchEntryList) {
+  const resultEntryList = originalEntryList;
+  for (let entryIndex = 0; entryIndex < patchEntryList.length; entryIndex += 1) {
+    const { source, target } = patchEntryList[entryIndex];
+    const foundIndex = findEntryIndex(resultEntryList, source);
+    if (foundIndex === -1) {
+      resultEntryList.push({ source, target });
+    } else {
+      resultEntryList[foundIndex].target = target;
+    }
+  }
+
+  return resultEntryList;
+}
+
 function extractDictionaryInfo(glossaryDict) {
   return {
     target_lang: glossaryDict.targetLang.toLowerCase(),
@@ -178,8 +193,9 @@ function getDictionaryEntries(glossaryId, sourceLang, targetLang, authKey) {
   if (!languages.isGlossarySupportedLanguagePair(sourceLang, targetLang)) {
     throw new util.HttpError('Unsupported glossary source and target language pair', 400);
   }
-  const dictionary = glossary.dictionaries.filter((dict) => dict.sourceLang.toUpperCase()
-    === sourceLang.toUpperCase() && dict.targetLang.toUpperCase() === targetLang.toUpperCase())[0];
+  const dictionary = glossary.dictionaries.filter(
+    (dict) => util.langPairMatches({ sourceLang, targetLang }, dict),
+  )[0];
   if (dictionary == null) {
     throw new util.HttpError('Dictionary not found', 404);
   }
@@ -206,13 +222,15 @@ function removeDictionary(glossaryId, sourceLang, targetLang, authKey) {
   if (!languages.isGlossarySupportedLanguagePair(sourceLang, targetLang)) {
     throw new util.HttpError('Unsupported glossary source and target language pair', 400);
   }
-  const dictionary = glossary.dictionaries.filter((dict) => dict.sourceLang.toUpperCase()
-    === sourceLang.toUpperCase() && dict.targetLang.toUpperCase() === targetLang.toUpperCase())[0];
+  const dictionary = glossary.dictionaries.filter(
+    (dict) => util.langPairMatches({ sourceLang, targetLang }, dict),
+  )[0];
   if (dictionary == null) {
     throw new util.HttpError('Dictionary not found', 404);
   }
-  const glossaryDictsToKeep = glossary.dictionaries.filter((dict) => dict.sourceLang.toUpperCase()
-    !== sourceLang.toUpperCase() && dict.targetLang.toUpperCase() !== targetLang.toUpperCase());
+  const glossaryDictsToKeep = glossary.dictionaries.filter(
+    (dict) => !util.langPairMatches({ sourceLang, targetLang }, dict),
+  );
   console.log(`Removing dictionary for source language ${dictionary.sourceLang} and target `
     + `language ${dictionary.targetLang} in glossary "${glossary.name}" (${glossaryId})`);
   glossary.dictionaries = glossaryDictsToKeep;
@@ -238,8 +256,9 @@ async function patchGlossary(glossaryId, name, dictionaries, authKey) {
     if (!glossaryDict.targetLang) {
       throw new util.HttpError('Target language for dictionary is required');
     }
-    const glossaryDictsToKeep = glossary.dictionaries.filter((dict) => dict.sourceLang
-      !== glossaryDict.sourceLang && dict.targetLang !== glossaryDict.targetLang);
+    const glossaryDictsToKeep = glossary.dictionaries.filter(
+      (dict) => !util.langPairMatches(dict, glossaryDict),
+    );
 
     let entryList;
     if (glossaryDict.entriesFormat === GLOSSARY_ENTRIES_FORMATS.TSV) {
@@ -249,6 +268,11 @@ async function patchGlossary(glossaryId, name, dictionaries, authKey) {
         glossaryDict.sourceLang,
         glossaryDict.targetLang);
     }
+
+    const currentEntryList = glossary.dictionaries.find(
+      (dict) => util.langPairMatches(dict, glossaryDict),
+    )?.entryList ?? [];
+    entryList = mergeEntryLists(currentEntryList, entryList);
 
     glossaryDictsToKeep.push({
       sourceLang: glossaryDict.sourceLang,
@@ -276,8 +300,9 @@ async function putDictionary(glossaryId, sourceLang, targetLang, entries, entrie
     entryList = await csvParser.convertGlossaryEntriesCsvToList(entries, sourceLang, targetLang);
   }
 
-  const glossaryDictsToKeep = glossary.dictionaries.filter((dict) => dict.sourceLang
-    !== sourceLang && dict.targetLang !== targetLang);
+  const glossaryDictsToKeep = glossary.dictionaries.filter(
+    (dict) => !util.langPairMatches({ sourceLang, targetLang }, dict),
+  );
 
   const updatedGlossaryDict = {
     sourceLang,

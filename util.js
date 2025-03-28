@@ -54,4 +54,14 @@ function convertToBcp47(langCode) {
   return tokens.join('-');
 }
 
-module.exports = { convertToBcp47, scheduleCleanup, HttpError };
+/**
+ * Given any two objects with sourceLang and targetLang parameters, checks if they match.
+ */
+function langPairMatches(dictL, dictR) {
+  return dictL.sourceLang.toLowerCase() === dictR.sourceLang.toLowerCase()
+      && dictL.targetLang.toLowerCase() === dictR.targetLang.toLowerCase();
+}
+
+module.exports = {
+  convertToBcp47, langPairMatches, scheduleCleanup, HttpError,
+};
