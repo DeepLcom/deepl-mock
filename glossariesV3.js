@@ -18,13 +18,13 @@ util.scheduleCleanup(glossaries, (glossary, glossaryId) => {
   console.log(`Removing glossary "${glossary.name}" (${glossaryId})`);
 });
 
-function findEntry(entryList, sourceEntry) {
+function findEntryIndex(entryList, sourceEntry) {
   for (let i = 0; i < entryList.length; i += 1) {
     if (entryList[i].source === sourceEntry) {
-      return entryList[i].target;
+      return i;
     }
   }
-  return undefined;
+  return -1;
 }
 
 function convertListToGlossaryDictionaryTsv(entriesList) {
@@ -48,9 +48,10 @@ function convertGlossaryDictionaryTsvToList(entriesTsv) {
       }
       const source = entry.substr(0, tabPosition);
       const target = entry.substr(tabPosition + 1);
-      if (findEntry(entryList, source) !== undefined) {
+      const foundIndex = findEntryIndex(entryList, source);
+      if (foundIndex !== -1) {
         throw new util.HttpError('Invalid glossary entries provided', 400,
-          `Key with the index ${entryIndex} (starting at position ${entryPosition}) duplicates key with the index {} (starting at position {})`);
+          `Key with the index ${entryIndex} (starting at position ${entryPosition}) duplicates key with the index ${foundIndex} (starting at position {})`);
       }
       entryList.push({ source, target });
     }
