@@ -1,7 +1,7 @@
 {
   "name": "deepl-mock",
   "description": "DeepL API mock server",
-  "version": "1.16.3",
+  "version": "1.17.4",
   "author": "DeepL SE <open-source@deepl.com>",
   "license": "MIT",
   "repository": "DeepLcom/deepl-mock",
@@ -19,6 +19,7 @@
     "http-proxy": "^1.18.1",
     "morgan": "^1.10.0",
     "nocache": "^3.0.1",
+    "qs": "^6.13.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

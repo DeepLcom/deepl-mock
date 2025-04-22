@@ -6,6 +6,15 @@ const express = require('express');
 const httpProxy = require('http-proxy');
 
 const app = express();
+
+// parsing form x-www-form-urlencoded request bodies
+const qs = require('qs');
+
+const qsparse = qs.parse;
+qs.parse = (str, options) => qsparse(str, {
+  ...options,
+  allowDots: true,
+});
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 const nocache = require('nocache');
@@ -673,6 +682,7 @@ app.post('/v2/translate', auth, requireUserAgent, handleTranslate);
 
 // (internal only) Note that this is not a real endpoint on the DeepL API. It is only included
 // to support testing path overrides in the client libraries.
+app.use('/v2/translate_secondary', express.json());
 app.post('/v2/translate_secondary', auth, requireUserAgent, handleTranslate);
 
 app.use('/v2/write/rephrase', express.json());
