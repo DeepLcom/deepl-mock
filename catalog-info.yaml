@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: deepl-mock
+  title: DeepL API mock server
+  description: A mock server that simulates some behaviour of the DeepL API to simplify application testing.
+spec:
+  type: library
+  lifecycle: production
+  owner: api-core-team
+  system: oss-client-libraries
