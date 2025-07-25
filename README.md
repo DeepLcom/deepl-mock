@@ -125,6 +125,10 @@ unlike the real DeepL API (which supports a subset of language pairs). Note that
 as this mock server does not implement translation, the model type used has no
 impact.
 
+### Billing period and usage limitations
+
+This mock server always uses a fixed billing period for all accounts, beginning at 04:05:06.789 am on the 3rd day of the current month and ending at the same time on the 3rd day of the next month (UTC). Individual API key character counts are not tracked; all usage is simulated and does not reflect real consumption per key.
+
 ## Additional checks compared with the DeepL API
 
 ### User-Agent

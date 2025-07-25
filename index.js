@@ -233,7 +233,15 @@ async function handleLanguages(req, res) {
 }
 
 async function handleUsage(req, res) {
-  res.send(req.user_account.usage);
+  const usage = req.user_account.usage;
+  usage.api_key_character_count = usage.character_count;
+  usage.api_key_character_limit = usage.character_limit;
+  usage.products = {
+    product_type: "translate",
+    character_count: usage.character_count,
+    character_limit: usage.character_limit,
+  };
+  res.send(usage);
 }
 
 async function handleTranslate(req, res) {

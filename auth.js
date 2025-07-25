@@ -9,6 +9,16 @@ util.scheduleCleanup(users, (_, authKey) => {
   console.log('Removed user account for:', authKey);
 });
 
+// Functions to get billing period start and end for the current month
+function getBillingStart() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 3, 4, 5, 6, 789)).toISOString();
+}
+function getBillingEnd() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 3, 4, 5, 6, 789)).toISOString();
+}
+
 function userExists(authKey) {
   return (authKey && authKey !== '' && authKey !== 'invalid' && users.has(authKey));
 }
@@ -18,6 +28,8 @@ function createUser(authKey, session) {
   if (session?.init_char_limit !== 0) {
     usage.character_count = 0;
     usage.character_limit = session?.init_char_limit || 20000000;
+    usage.start_time = getBillingStart();
+    usage.end_time = getBillingEnd();
   }
   if (session?.init_doc_limit !== 0) {
     usage.document_count = 0;

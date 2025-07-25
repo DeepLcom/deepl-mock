@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+* `/v2/usage` endpoint: Now returns additional fields: `products`, `api_key_character_count`, `api_key_character_limit`, `start_time`, and `end_time` in the response, matching the latest DeepL API spec.
+
 ## [1.17.4] - 2025-04-22
 ### Added
 * Add support for dot notation for x-www-form-encoded requests
@@ -256,6 +260,7 @@ Initial version.
 
 # Version Comparisons
 
+[Unreleased]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.4...HEAD
 [1.17.4]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.3...HEAD
 [1.17.3]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.2...v1.17.3
 [1.17.2]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.1...v1.17.2
