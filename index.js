@@ -242,7 +242,7 @@ async function handleUsage(req, res) {
   };
   
   // For Pro accounts, include additional fields
-  if (usage.account_type === 'pro') {
+  if (!usage.authKey.endsWith(':fx')) {
     response.api_key_character_count = usage.character_count;
     response.api_key_character_limit = usage.character_limit;
     
