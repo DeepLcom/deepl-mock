@@ -239,6 +239,8 @@ async function handleUsage(req, res) {
   const response = {
     character_count: usage.character_count,
     character_limit: usage.character_limit,
+    start_time: usage.start_time,
+    end_time: usage.end_time,
   };
 
   // For Pro accounts, include additional fields
