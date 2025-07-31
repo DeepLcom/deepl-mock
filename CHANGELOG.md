@@ -258,10 +258,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2021-07-30
 Initial version.
 
-# Version Comparisons
 
 [Unreleased]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.4...HEAD
-[1.17.4]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.3...HEAD
+[1.17.4]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.3...v1.17.4
 [1.17.3]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.2...v1.17.3
 [1.17.2]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.1...v1.17.2
 [1.17.1]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.0...v1.17.1
