@@ -355,13 +355,10 @@ async function handleRephrase(req, res) {
         .send({ message: 'Quota for this billing period has been exceeded.' });
     } else {
       const body = {
-        improvements: textArray.map((text) => {
-          const result = languages.rephrase(
-            text,
-            util.convertToBcp47(targetLang),
-          );
-          return result;
-        }),
+        improvements: textArray.map((text) => languages.rephrase(
+          text,
+          util.convertToBcp47(targetLang),
+        )),
       };
       res.status(200).send(body);
     }
