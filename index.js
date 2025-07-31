@@ -233,29 +233,29 @@ async function handleLanguages(req, res) {
 }
 
 async function handleUsage(req, res) {
-  const usage = req.user_account.usage;
-  
+  const { usage } = req.user_account;
+
   // Create the base response with character count and limit
   const response = {
     character_count: usage.character_count,
-    character_limit: usage.character_limit
+    character_limit: usage.character_limit,
   };
-  
+
   // For Pro accounts, include additional fields
   if (!req.user_account.authKey.endsWith(':fx')) {
     response.api_key_character_count = usage.character_count;
     response.api_key_character_limit = usage.character_limit;
-    
+
     // Add products array for Pro accounts
     response.products = [
       {
-        product_type: "translate",
+        product_type: 'translate',
         api_key_character_count: usage.character_count,
-        character_count: usage.character_count
-      }
+        character_count: usage.character_count,
+      },
     ];
   }
-  
+
   res.send(response);
 }
 

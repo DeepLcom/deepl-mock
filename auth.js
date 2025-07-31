@@ -16,7 +16,8 @@ function getBillingStart() {
 }
 function getBillingEnd() {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 3, 4, 5, 6, 789)).toISOString();
+  return new Date(Date.UTC(now.getUTCFullYear(),
+    now.getUTCMonth() + 1, 3, 4, 5, 6, 789)).toISOString();
 }
 
 function userExists(authKey) {
