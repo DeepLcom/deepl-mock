@@ -239,14 +239,20 @@ async function handleUsage(req, res) {
   const response = {
     character_count: usage.character_count,
     character_limit: usage.character_limit,
-    start_time: usage.start_time,
-    end_time: usage.end_time,
+
+    // Additional fields that will be omitted from response if undefined
+    document_limit: usage.document_limit,
+    document_count: usage.document_count,
+    team_document_limit: usage.team_document_limit,
+    team_document_count: usage.team_document_count,
   };
 
   // For Pro accounts, include additional fields
   if (!req.user_account.authKey.endsWith(':fx')) {
     response.api_key_character_count = usage.character_count;
     response.api_key_character_limit = usage.character_limit;
+    response.start_time = usage.start_time;
+    response.end_time = usage.end_time;
 
     // Add products array for Pro accounts
     response.products = [
