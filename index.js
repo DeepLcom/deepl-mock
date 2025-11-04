@@ -39,6 +39,7 @@ const documents = require('./documents');
 const glossariesV2 = require('./glossariesV2');
 const glossariesV3 = require('./glossariesV3');
 const languages = require('./languages');
+const styleRules = require('./styleRules');
 const { writingStyles, WritingStyle } = require('./writing_styles');
 const { writingTones, WritingTone } = require('./writing_tones');
 const util = require('./util');
@@ -156,6 +157,22 @@ function getParamGlossary(req, sourceLang) {
   } catch {
     return glossaryId === undefined ? undefined : glossariesV3.getGlossary(glossaryId, authKey);
   }
+}
+
+function getParamStyleRule(req, targetLang) {
+  const { authKey } = req.user_account;
+  const styleId = getParam(req, 'style_id',
+    { validator: (id) => (id === undefined || styleRules.isValidStyleId(id)) });
+  if (styleId !== undefined) {
+    const styleRule = styleRules.getStyleRule(styleId, authKey);
+    const styleRuleLang = languages.getBaseLanguageCode(styleRule.language.toUpperCase());
+    const requestTargetLang = languages.getBaseLanguageCode(targetLang.toUpperCase());
+    if (styleRuleLang !== requestTargetLang) {
+      throw new util.HttpError('Style rule language does not match the translate request target language', 400);
+    }
+    return styleRule;
+  }
+  return undefined;
 }
 
 function getParamGlossaryId(req, required = true) {
@@ -286,6 +303,7 @@ async function handleTranslate(req, res) {
     getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1', true, false] });
     const showBilledCharacters = getParam(req, 'show_billed_characters', { default: false, allowedValues: ['0', '1', true, false] });
     const modelType = getParam(req, 'model_type', { allowedValues: ['quality_optimized', 'latency_optimized', 'prefer_quality_optimized'] });
+    getParamStyleRule(req, targetLang);
 
     // Calculate the character count of the requested translation
     const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);
@@ -696,6 +714,31 @@ async function handleDictionaryPut(req, res) {
   }
 }
 
+async function handleStyleRuleList(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const pageSizeAllowedValues = Array.from({ length: 25 }, (_, i) => String(i + 1));
+
+    const pageStr = getParam(req, 'page', { default: '0' });
+    const pageSizeStr = getParam(req, 'page_size', { default: '10', allowedValues: pageSizeAllowedValues });
+    const detailedStr = getParam(req, 'detailed', { default: 'false', allowedValues: ['true', 'false'] });
+    const page = Number.parseInt(pageStr, 10);
+    const pageSize = Number.parseInt(pageSizeStr, 10);
+    const detailed = detailedStr === 'true';
+
+    // Validate page is non-negative
+    if (Number.isNaN(page) || page < 0) {
+      throw new util.HttpError('Parameter "page" must be a non-negative integer', 400);
+    }
+
+    const styleRuleList = styleRules.getStyleRuleInfoList(authKey, page, pageSize, detailed);
+    res.status(200).send(styleRuleList);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
 app.use('/v2/languages', express.json());
 app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
 app.post('/v2/languages', auth, requireUserAgent, handleLanguages);
@@ -746,6 +789,8 @@ app.delete('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleV3Glossa
 app.delete('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryDelete);
 app.patch('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryPatch);
 app.put('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryPut);
+
+app.get('/v3/style_rules', auth, requireUserAgent, handleStyleRuleList.bind(null));
 
 app.all('/*', (req, res) => {
   res.status(404).send();
