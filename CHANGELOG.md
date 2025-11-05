@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 * `/v2/usage` endpoint: Now returns additional fields: `products`, `api_key_character_count`, `api_key_character_limit`, `start_time`, and `end_time` in the response, matching the latest DeepL API spec.
+* `/v3/style_rules` endpoint: Add support for listing style rules with pagination (page, page_size) and detailed response options
+* Add `style_id` parameter support to `/v2/translate` endpoint for style rule validation
 
 ## [1.17.4] - 2025-04-22
 ### Added
