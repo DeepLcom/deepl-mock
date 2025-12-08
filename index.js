@@ -34,6 +34,15 @@ app.use(morgan('dev')); // Developer-style formatting
 const sessions = require('./sessions');
 
 app.use(sessions());
+
+// Add X-Trace-ID header to all responses
+const crypto = require('crypto');
+app.use((req, res, next) => {
+  const traceId = crypto.randomBytes(16).toString('hex');
+  res.setHeader('X-Trace-ID', traceId);
+  next();
+});
+
 const auth = require('./auth');
 const documents = require('./documents');
 const glossariesV2 = require('./glossariesV2');
