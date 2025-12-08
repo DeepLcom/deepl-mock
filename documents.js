@@ -30,15 +30,6 @@ util.scheduleCleanup(documents, (document, id) => {
   console.debug('Removed document:', id);
 });
 
-function generateRandomHexString(length) {
-  const hex = '0123456789ABCDEF';
-  let output = '';
-  for (let i = 0; i < length; i += 1) {
-    output += hex.charAt(Math.floor(Math.random() * 16));
-  }
-  return output;
-}
-
 const documentFormatInfos = [
   {
     exts: ['txt'],
@@ -84,8 +75,8 @@ async function createDocument(file, authKey, targetLang, sourceLang, glossary, o
   }
 
   // Generate id & key for document
-  const documentId = generateRandomHexString(32);
-  const documentKey = generateRandomHexString(64);
+  const documentId = util.generateRandomHexString(32);
+  const documentKey = util.generateRandomHexString(64);
   const pathIn = `./documents/${documentId}`;
 
   await file.mv(pathIn);

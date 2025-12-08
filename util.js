@@ -62,6 +62,18 @@ function langPairMatches(dictL, dictR) {
       && dictL.targetLang.toLowerCase() === dictR.targetLang.toLowerCase();
 }
 
+/**
+ * Generates a random hexadecimal string of the specified length.
+ */
+function generateRandomHexString(length) {
+  const hex = '0123456789ABCDEF';
+  let output = '';
+  for (let i = 0; i < length; i += 1) {
+    output += hex.charAt(Math.floor(Math.random() * 16));
+  }
+  return output;
+}
+
 module.exports = {
-  convertToBcp47, langPairMatches, scheduleCleanup, HttpError,
+  convertToBcp47, langPairMatches, scheduleCleanup, HttpError, generateRandomHexString,
 };
