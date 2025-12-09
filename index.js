@@ -35,13 +35,6 @@ const sessions = require('./sessions');
 
 app.use(sessions());
 
-// Add X-Trace-ID header to all responses
-app.use((req, res, next) => {
-  const traceId = util.generateRandomHexString(32);
-  res.setHeader('X-Trace-ID', traceId);
-  next();
-});
-
 const auth = require('./auth');
 const documents = require('./documents');
 const glossariesV2 = require('./glossariesV2');
@@ -51,6 +44,13 @@ const styleRules = require('./styleRules');
 const { writingStyles, WritingStyle } = require('./writing_styles');
 const { writingTones, WritingTone } = require('./writing_tones');
 const util = require('./util');
+
+// Add X-Trace-ID header to all responses
+app.use((req, res, next) => {
+  const traceId = util.generateRandomHexString(32);
+  res.setHeader('X-Trace-ID', traceId);
+  next();
+});
 
 const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
 const envVarProxyPort = 'DEEPL_MOCK_PROXY_SERVER_PORT';
