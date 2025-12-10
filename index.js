@@ -308,6 +308,7 @@ async function handleTranslate(req, res) {
     getParam(req, 'preserve_formatting', { default: '0', allowedValues: ['0', '1', true, false] });
     getParamFormality(req, targetLang);
     getParam(req, 'tag_handling', { default: 'xml', allowedValues: ['html', 'xml'] });
+    getParam(req, 'tag_handling_version', { allowedValues: ['v1', 'v2'] });
     getParam(req, 'outline_detection', { default: '1', allowedValues: ['0', '1', true, false] });
     const showBilledCharacters = getParam(req, 'show_billed_characters', { default: false, allowedValues: ['0', '1', true, false] });
     const modelType = getParam(req, 'model_type', { allowedValues: ['quality_optimized', 'latency_optimized', 'prefer_quality_optimized'] });
