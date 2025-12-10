@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.18.0] - 2025-12-10
 ### Added
 * Added validation for `tag_handling_version` parameter in translate endpoint. Accepts `v1` and `v2` values.
 * `/v2/usage` endpoint: Now returns additional fields: `products`, `api_key_character_count`, `api_key_character_limit`, `start_time`, and `end_time` in the response, matching the latest DeepL API spec.
@@ -263,7 +265,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial version.
 
 
-[Unreleased]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.4...HEAD
+[Unreleased]: https://github.com/DeepLcom/deepl-mock/compare/v1.18.0...HEAD
+[1.18.0]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.4...v1.18.0
 [1.17.4]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.3...v1.17.4
 [1.17.3]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.2...v1.17.3
 [1.17.2]: https://github.com/DeepLcom/deepl-mock/compare/v1.17.1...v1.17.2
