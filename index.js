@@ -77,7 +77,7 @@ function requireUserAgent(req, res, next) {
 }
 
 function getParam(req, name, options) {
-  let v = req.body[name] || req.query[name];
+  let v = req.body?.[name] ?? req.query[name];
 
   if (options?.params) {
     v = req.params[name];
