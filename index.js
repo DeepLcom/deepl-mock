@@ -801,7 +801,7 @@ app.put('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, hand
 
 app.get('/v3/style_rules', auth, requireUserAgent, handleStyleRuleList.bind(null));
 
-app.all('/*', (req, res) => {
+app.all('/*path', (req, res) => {
   res.status(404).send();
 });
 
@@ -817,7 +817,7 @@ server.keepAliveTimeout = 10 * 1000;
 if (!Number.isNaN(proxyPort)) {
   const proxyApp = express();
   const proxy = httpProxy.createProxyServer({});
-  proxyApp.all('*', (req, res) => {
+  proxyApp.all('*path', (req, res) => {
     console.log('Proxying request:', req.method, req.url);
     req.headers.forwarded = `for=${req.ip}`;
     proxy.web(req, res, { target: `http://localhost:${port}` }, (err) => {
