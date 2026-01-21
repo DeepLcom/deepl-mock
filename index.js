@@ -748,6 +748,198 @@ async function handleStyleRuleList(req, res) {
   }
 }
 
+async function handleStyleRuleGet(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const styleId = getParam(req, 'style_id', { params: true, required: true });
+
+    if (!styleRules.isValidStyleId(styleId)) {
+      throw new util.HttpError('Invalid style_id', 400);
+    }
+
+    const styleRuleInfo = styleRules.getStyleRuleInfo(styleId, authKey, true);
+    res.status(200).send(styleRuleInfo);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
+async function handleStyleRuleCreate(req, res) {
+  try {
+    const { authKey } = req.user_account;
+
+    const name = getParam(req, 'name', { required: true });
+    const language = getParam(req, 'language', { required: true, lower: true });
+    const configuredRules = getParam(req, 'configured_rules', { default: {} });
+    const customInstructions = getParam(req, 'custom_instructions', { default: [] });
+
+    const styleRuleInfo = styleRules.createStyleRule(
+      name,
+      language,
+      authKey,
+      configuredRules,
+      customInstructions,
+    );
+    res.status(201).send(styleRuleInfo);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
+async function handleStyleRulePatch(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const styleId = getParam(req, 'style_id', { params: true, required: true });
+
+    if (!styleRules.isValidStyleId(styleId)) {
+      throw new util.HttpError('Invalid style_id', 400);
+    }
+
+    const updates = {};
+    const name = getParam(req, 'name');
+
+    if (name !== undefined) {
+      updates.name = name;
+    }
+
+    const styleRuleInfo = styleRules.patchStyleRule(styleId, authKey, updates);
+    res.status(200).send(styleRuleInfo);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
+async function handleConfiguredRulesUpdate(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const styleId = getParam(req, 'style_id', { params: true, required: true });
+
+    if (!styleRules.isValidStyleId(styleId)) {
+      throw new util.HttpError('Invalid style_id', 400);
+    }
+
+    const configuredRules = req.body;
+
+    const styleRuleInfo = styleRules.updateConfiguredRules(styleId, authKey, configuredRules);
+    res.status(200).send(styleRuleInfo);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
+async function handleStyleRuleDelete(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const styleId = getParam(req, 'style_id', { params: true, required: true });
+
+    if (!styleRules.isValidStyleId(styleId)) {
+      throw new util.HttpError('Invalid style_id', 400);
+    }
+
+    styleRules.removeStyleRule(styleId, authKey);
+    res.status(204).send();
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
+async function handleCustomInstructionCreate(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const styleId = getParam(req, 'style_id', { params: true, required: true });
+
+    if (!styleRules.isValidStyleId(styleId)) {
+      throw new util.HttpError('Invalid style_id', 400);
+    }
+
+    const label = getParam(req, 'label', { required: true });
+    const prompt = getParam(req, 'prompt', { required: true });
+    const sourceLanguage = getParam(req, 'source_language', { lower: true });
+
+    const instruction = styleRules.createCustomInstruction(
+      styleId,
+      authKey,
+      label,
+      prompt,
+      sourceLanguage,
+    );
+    res.status(201).send(instruction);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
+async function handleCustomInstructionGet(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const styleId = getParam(req, 'style_id', { params: true, required: true });
+    const instructionId = getParam(req, 'instruction_id', { params: true, required: true });
+
+    if (!styleRules.isValidStyleId(styleId)) {
+      throw new util.HttpError('Invalid style_id', 400);
+    }
+
+    const instruction = styleRules.getCustomInstruction(styleId, instructionId, authKey);
+    res.status(200).send(instruction);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
+async function handleCustomInstructionUpdate(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const styleId = getParam(req, 'style_id', { params: true, required: true });
+    const instructionId = getParam(req, 'instruction_id', { params: true, required: true });
+
+    if (!styleRules.isValidStyleId(styleId)) {
+      throw new util.HttpError('Invalid style_id', 400);
+    }
+
+    const label = getParam(req, 'label', { required: true });
+    const prompt = getParam(req, 'prompt', { required: true });
+    const sourceLanguage = getParam(req, 'source_language', { lower: true });
+
+    const instruction = styleRules.updateCustomInstruction(
+      styleId,
+      instructionId,
+      authKey,
+      label,
+      prompt,
+      sourceLanguage,
+    );
+    res.status(200).send(instruction);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
+async function handleCustomInstructionDelete(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const styleId = getParam(req, 'style_id', { params: true, required: true });
+    const instructionId = getParam(req, 'instruction_id', { params: true, required: true });
+
+    if (!styleRules.isValidStyleId(styleId)) {
+      throw new util.HttpError('Invalid style_id', 400);
+    }
+
+    styleRules.removeCustomInstruction(styleId, instructionId, authKey);
+    res.status(204).send();
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send(err.body());
+  }
+}
+
 app.use('/v2/languages', express.json());
 app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
 app.post('/v2/languages', auth, requireUserAgent, handleLanguages);
@@ -799,7 +991,17 @@ app.delete('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, h
 app.patch('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryPatch);
 app.put('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryPut);
 
+app.use('/v3/style_rules', express.json());
 app.get('/v3/style_rules', auth, requireUserAgent, handleStyleRuleList.bind(null));
+app.post('/v3/style_rules', auth, requireUserAgent, handleStyleRuleCreate.bind(null));
+app.get('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRuleGet.bind(null));
+app.patch('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRulePatch.bind(null));
+app.delete('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRuleDelete.bind(null));
+app.put('/v3/style_rules/:style_id/configured_rules', auth, requireUserAgent, handleConfiguredRulesUpdate.bind(null));
+app.post('/v3/style_rules/:style_id/custom_instructions', auth, requireUserAgent, handleCustomInstructionCreate.bind(null));
+app.get('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionGet.bind(null));
+app.put('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionUpdate.bind(null));
+app.delete('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionDelete.bind(null));
 
 app.all('/*path', (req, res) => {
   res.status(404).send();

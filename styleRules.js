@@ -39,7 +39,7 @@ function extractStyleRuleInfo(styleRule, detailed = false) {
   };
 
   if (detailed) {
-    info.configured_rules = styleRule.configuredRules || [];
+    info.configured_rules = styleRule.configuredRules || {};
     info.custom_instructions = styleRule.customInstructions || [];
   }
 
@@ -89,6 +89,146 @@ function getStyleRuleInfoList(authKey, page, pageSize, detailed) {
   };
 }
 
+function createStyleRule(name, language, authKey, configuredRules = {}, customInstructions = []) {
+  // Validate custom instructions
+  if (customInstructions.length > 200) {
+    throw new util.HttpError('Maximum of 200 custom instructions allowed', 400);
+  }
+
+  // Validate each custom instruction
+  const validatedInstructions = customInstructions.map((instruction) => {
+    if (!instruction.prompt || instruction.prompt.length > 300) {
+      throw new util.HttpError('Each custom instruction must have a prompt of at most 300 characters', 400);
+    }
+    return {
+      id: uuid.v4(),
+      label: instruction.label || '',
+      prompt: instruction.prompt,
+      source_language: instruction.source_language || language,
+    };
+  });
+
+  const styleId = uuid.v4();
+  const now = new Date();
+
+  const styleRule = {
+    styleId,
+    name,
+    language: language.toLowerCase(),
+    creationTime: now,
+    updatedTime: now,
+    version: 1,
+    used: now,
+    authKey,
+    configuredRules: configuredRules || {},
+    customInstructions: validatedInstructions,
+  };
+
+  styleRules.set(styleId, styleRule);
+  console.log(`Created style rule "${styleRule.name}" (${styleId})`);
+  return extractStyleRuleInfo(styleRule, true);
+}
+
+function patchStyleRule(styleId, authKey, updates) {
+  const styleRule = getStyleRule(styleId, authKey);
+
+  if (updates.name !== undefined) {
+    styleRule.name = updates.name;
+  }
+
+  styleRule.updatedTime = new Date();
+  styleRule.version += 1;
+
+  return extractStyleRuleInfo(styleRule, true);
+}
+
+function updateConfiguredRules(styleId, authKey, configuredRules) {
+  const styleRule = getStyleRule(styleId, authKey);
+
+  styleRule.configuredRules = configuredRules || {};
+
+  styleRule.updatedTime = new Date();
+  styleRule.version += 1;
+
+  return extractStyleRuleInfo(styleRule, true);
+}
+
+function createCustomInstruction(styleId, authKey, label, prompt, sourceLanguage) {
+  const styleRule = getStyleRule(styleId, authKey);
+
+  if (styleRule.customInstructions.length >= 200) {
+    throw new util.HttpError('Maximum of 200 custom instructions allowed', 400);
+  }
+
+  if (!prompt || prompt.length > 300) {
+    throw new util.HttpError('Custom instruction prompt must be at most 300 characters', 400);
+  }
+
+  const instruction = {
+    id: uuid.v4(),
+    label: label || '',
+    prompt,
+    source_language: sourceLanguage || styleRule.language,
+  };
+
+  styleRule.customInstructions.push(instruction);
+  styleRule.updatedTime = new Date();
+  styleRule.version += 1;
+
+  return instruction;
+}
+
+function getCustomInstruction(styleId, instructionId, authKey) {
+  const styleRule = getStyleRule(styleId, authKey);
+  const instruction = styleRule.customInstructions.find((inst) => inst.id === instructionId);
+
+  if (!instruction) {
+    throw new util.HttpError('Custom instruction not found', 404);
+  }
+
+  return instruction;
+}
+
+function updateCustomInstruction(styleId, instructionId, authKey, label, prompt, sourceLanguage) {
+  const styleRule = getStyleRule(styleId, authKey);
+  const index = styleRule.customInstructions.findIndex((inst) => inst.id === instructionId);
+
+  if (index === -1) {
+    throw new util.HttpError('Custom instruction not found', 404);
+  }
+
+  if (!prompt || prompt.length > 300) {
+    throw new util.HttpError('Custom instruction prompt must be at most 300 characters', 400);
+  }
+
+  styleRule.customInstructions[index] = {
+    id: instructionId,
+    label: label || '',
+    prompt,
+    source_language: sourceLanguage || styleRule.language,
+  };
+
+  styleRule.updatedTime = new Date();
+  styleRule.version += 1;
+
+  return styleRule.customInstructions[index];
+}
+
+function removeCustomInstruction(styleId, instructionId, authKey) {
+  const styleRule = getStyleRule(styleId, authKey);
+  const index = styleRule.customInstructions.findIndex((inst) => inst.id === instructionId);
+
+  if (index === -1) {
+    throw new util.HttpError('Custom instruction not found', 404);
+  }
+
+  console.log(`Removing custom instruction "${styleRule.customInstructions[index].label}" from style rule "${styleRule.name}" (${styleId})`);
+  styleRule.customInstructions.splice(index, 1);
+  styleRule.updatedTime = new Date();
+  styleRule.version += 1;
+  console.log('Done');
+}
+
 function removeStyleRule(styleId, authKey) {
   const styleRule = getStyleRule(styleId, authKey);
   console.log(`Removing style rule "${styleRule.name}" (${styleId})`);
@@ -101,7 +241,14 @@ module.exports = {
   getStyleRule,
   getStyleRuleInfo,
   getStyleRuleInfoList,
+  createStyleRule,
+  patchStyleRule,
+  updateConfiguredRules,
   removeStyleRule,
+  createCustomInstruction,
+  getCustomInstruction,
+  updateCustomInstruction,
+  removeCustomInstruction,
   getDefaultStyleRule,
   DEFAULT_STYLE_RULE_ID,
 };
