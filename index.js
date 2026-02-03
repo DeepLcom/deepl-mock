@@ -121,7 +121,7 @@ function getParamFormality(req, targetLang) {
     allowedValues: ['less', 'more', 'default', 'prefer_less', 'prefer_more'],
     validator: (formality) => {
       if (!languages.supportsFormality(targetLang, formality)) {
-        throw new util.HttpError("'formality' is not supported for given 'target_lang'.", 400);
+        throw new util.HttpError(`Target language '${targetLang}' doesn't support formality.`, 400);
       }
     },
   });
@@ -331,7 +331,7 @@ async function handleTranslate(req, res) {
             result.billed_characters = text.length;
           }
           if (modelType) {
-            result.model_type_used = modelType.replace('prefer_', '');
+            result.model_type_used = 'quality_optimized';
           }
           return result;
         }),
