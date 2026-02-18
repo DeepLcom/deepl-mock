@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Updated dependencies to fix GHSA-w7fw-mjwx-w883 (qs ReDoS vulnerability)
+
 ## [1.19.0] - 2026-02-03
 ### Changed
 - Update model_type_used to always be `quality_optimized` for `/translate`
