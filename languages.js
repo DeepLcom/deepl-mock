@@ -3,9 +3,21 @@
 // license that can be found in the LICENSE file.
 
 const languages = new Map([
+  ['AF', { name: 'Afrikaans', type: 'both', text: 'protoonstraal' }],
+  ['AN', { name: 'Aragonese', type: 'both', text: 'feixe de protons' }],
   ['AR', { name: 'Arabic', type: 'both', text: 'شعاع البروتون' }],
+  ['AS', { name: 'Assamese', type: 'both', text: 'প্ৰোটন ৰশ্মি' }],
+  ['AY', { name: 'Aymara', type: 'both', text: 'hayu proton' }],
+  ['AZ', { name: 'Azerbaijani', type: 'both', text: 'proton şüası' }],
+  ['BA', { name: 'Bashkir', type: 'both', text: 'протон нуры' }],
+  ['BE', { name: 'Belarusian', type: 'both', text: 'пратонны пучок' }],
   ['BG', { name: 'Bulgarian', type: 'both', text: 'протонен лъч' }],
+  ['BN', { name: 'Bengali', type: 'both', text: 'প্রোটন রশ্মি' }],
+  ['BR', { name: 'Breton', type: 'both', text: 'takad proton' }],
+  ['BS', { name: 'Bosnian', type: 'both', text: 'protonski zrak' }],
+  ['CA', { name: 'Catalan', type: 'both', text: 'feix de protons' }],
   ['CS', { name: 'Czech', type: 'both', text: 'protonový paprsek' }],
+  ['CY', { name: 'Welsh', type: 'both', text: 'pelydryn proton' }],
   ['DA', { name: 'Danish', type: 'both', text: 'protonstråle' }],
   ['DE', {
     name: 'German',
@@ -41,6 +53,7 @@ const languages = new Map([
     supports_style: true,
     supports_tone: true,
   }],
+  ['EO', { name: 'Esperanto', type: 'both', text: 'protona radio' }],
   ['ES', {
     name: 'Spanish',
     type: 'both',
@@ -48,7 +61,10 @@ const languages = new Map([
     text: 'haz de protones',
     supports_write: true,
   }],
+  ['ES-419', { name: 'Spanish (Latin American)', type: 'target', formality: true, text: 'haz de protones' }],
   ['ET', { name: 'Estonian', type: 'both', text: 'prootonikiirgus' }],
+  ['EU', { name: 'Basque', type: 'both', text: 'protoi izpia' }],
+  ['FA', { name: 'Persian', type: 'both', text: 'پرتو پروتون' }],
   ['FI', { name: 'Finnish', type: 'both', text: 'protonisäde' }],
   ['FR', {
     name: 'French',
@@ -57,8 +73,20 @@ const languages = new Map([
     text: 'faisceau de protons',
     supports_write: true,
   }],
+  ['GA', { name: 'Irish', type: 'both', text: 'léas prótóin' }],
+  ['GL', { name: 'Galician', type: 'both', text: 'feixe de prótons' }],
+  ['GN', { name: 'Guarani', type: 'both', text: "proton ra'anga" }],
+  ['GU', { name: 'Gujarati', type: 'both', text: 'પ્રોટોન બીમ' }],
+  ['HA', { name: 'Hausa', type: 'both', text: 'hasken proton' }],
+  ['HE', { name: 'Hebrew', type: 'both', text: 'קרן פרוטון' }],
+  ['HI', { name: 'Hindi', type: 'both', text: 'प्रोटॉन किरण' }],
+  ['HR', { name: 'Croatian', type: 'both', text: 'protonska zraka' }],
+  ['HT', { name: 'Haitian Creole', type: 'both', text: 'reyon pwotòn' }],
   ['HU', { name: 'Hungarian', type: 'both', text: 'protonnyaláb' }],
+  ['HY', { name: 'Armenian', type: 'both', text: 'պրոտոնային փնջ' }],
   ['ID', { name: 'Indonesian', type: 'both', text: 'berkas proton' }],
+  ['IG', { name: 'Igbo', type: 'both', text: 'wiwe proton' }],
+  ['IS', { name: 'Icelandic', type: 'both', text: 'prótóngeisli' }],
   ['IT', {
     name: 'Italian',
     type: 'both',
@@ -69,16 +97,37 @@ const languages = new Map([
   ['JA', {
     name: 'Japanese', type: 'both', formality: true, text: '陽子ビーム',
   }],
+  ['JV', { name: 'Javanese', type: 'both', text: 'sinar proton' }],
+  ['KA', { name: 'Georgian', type: 'both', text: 'პროტონის სხივი' }],
+  ['KK', { name: 'Kazakh', type: 'both', text: 'протон сәулесі' }],
   ['KO', { name: 'Korean', type: 'both', text: '양성자 빔' }],
+  ['KY', { name: 'Kyrgyz', type: 'both', text: 'протон нуру' }],
+  ['LA', { name: 'Latin', type: 'both', text: 'radius protonicus' }],
+  ['LB', { name: 'Luxembourgish', type: 'both', text: 'Protonestral' }],
+  ['LN', { name: 'Lingala', type: 'both', text: 'moyi wa proton' }],
   ['LT', { name: 'Lithuanian', type: 'both', text: 'protonų spindulys' }],
   ['LV', { name: 'Latvian', type: 'both', text: 'protonu staru kūlis' }],
+  ['MG', { name: 'Malagasy', type: 'both', text: 'taratra proton' }],
+  ['MI', { name: 'Maori', type: 'both', text: 'hihi proton' }],
+  ['MK', { name: 'Macedonian', type: 'both', text: 'протонски зрак' }],
+  ['ML', { name: 'Malayalam', type: 'both', text: 'പ്രോടോൺ ബീം' }],
+  ['MN', { name: 'Mongolian', type: 'both', text: 'протоны туяа' }],
+  ['MR', { name: 'Marathi', type: 'both', text: 'प्रोटॉन किरण' }],
+  ['MS', { name: 'Malay', type: 'both', text: 'alur proton' }],
+  ['MT', { name: 'Maltese', type: 'both', text: 'raġġ tal-proton' }],
+  ['MY', { name: 'Burmese', type: 'both', text: 'ပရိုတွန်ဓာတ်ရောင်ခြည်' }],
   ['NB', { name: 'Norwegian (bokmål)', type: 'both', text: 'protonstråle' }],
+  ['NE', { name: 'Nepali', type: 'both', text: 'प्रोटन किरण' }],
   ['NL', {
     name: 'Dutch', type: 'both', formality: true, text: 'protonenbundel',
   }],
+  ['OC', { name: 'Occitan', type: 'both', text: 'fais de protons' }],
+  ['OM', { name: 'Oromo', type: 'both', text: 'ifaa proton' }],
+  ['PA', { name: 'Punjabi', type: 'both', text: 'ਪ੍ਰੋਟੋਨ ਬੀਮ' }],
   ['PL', {
     name: 'Polish', type: 'both', formality: true, text: 'wiązka protonów',
   }],
+  ['PS', { name: 'Pashto', type: 'both', text: 'د پروتون وړانګه' }],
   ['PT', {
     name: 'Portuguese', type: 'source', text: 'feixe de prótons', supports_write: true,
   }],
@@ -96,18 +145,43 @@ const languages = new Map([
     text: 'feixe de prótons',
     supports_write: true,
   }],
+  ['QU', { name: 'Quechua', type: 'both', text: "proton k'anchay" }],
   ['RO', { name: 'Romanian', type: 'both', text: 'fascicul de protoni' }],
   ['RU', {
     name: 'Russian', type: 'both', formality: true, text: 'протонный луч',
   }],
+  ['SA', { name: 'Sanskrit', type: 'both', text: 'प्रोटॉन रश्मि' }],
   ['SK', { name: 'Slovak', type: 'both', text: 'protónový lúč' }],
   ['SL', { name: 'Slovenian', type: 'both', text: 'protonski žarek' }],
+  ['SQ', { name: 'Albanian', type: 'both', text: 'reze protonesh' }],
+  ['SR', { name: 'Serbian', type: 'both', text: 'протонски зрак' }],
+  ['ST', { name: 'Sesotho', type: 'both', text: 'molapo wa proton' }],
+  ['SU', { name: 'Sundanese', type: 'both', text: 'sinar proton' }],
   ['SV', { name: 'Swedish', type: 'both', text: 'protonstråle' }],
+  ['SW', { name: 'Swahili', type: 'both', text: 'mwale wa protoni' }],
+  ['TA', { name: 'Tamil', type: 'both', text: 'புரோட்டான் கதிர்' }],
+  ['TE', { name: 'Telugu', type: 'both', text: 'ప్రోటాన్ కిరణం' }],
+  ['TG', { name: 'Tajik', type: 'both', text: 'нури протон' }],
+  ['TH', { name: 'Thai', type: 'both', text: 'ลำแสงโปรตอน' }],
+  ['TK', { name: 'Turkmen', type: 'both', text: 'proton şöhlesi' }],
+  ['TL', { name: 'Tagalog', type: 'both', text: 'sinag ng proton' }],
+  ['TN', { name: 'Tswana', type: 'both', text: 'molapo wa proton' }],
   ['TR', { name: 'Turkish', type: 'both', text: 'proton ışını' }],
+  ['TS', { name: 'Tsonga', type: 'both', text: 'rivelo ra proton' }],
+  ['TT', { name: 'Tatar', type: 'both', text: 'протон нуры' }],
   ['UK', { name: 'Ukrainian', type: 'both', text: 'протонний пучок' }],
+  ['UR', { name: 'Urdu', type: 'both', text: 'پروٹون شعاع' }],
+  ['UZ', { name: 'Uzbek', type: 'both', text: 'proton nuri' }],
+  ['VI', { name: 'Vietnamese', type: 'both', text: 'chùm proton' }],
+  ['WO', { name: 'Wolof', type: 'both', text: 'rayon proton' }],
+  ['XH', { name: 'Xhosa', type: 'both', text: 'umtya we-proton' }],
+  ['YI', { name: 'Yiddish', type: 'both', text: 'פּראָטאָן שטראַל' }],
   ['ZH', {
     source_name: 'Chinese', target_name: 'Chinese (simplified)', type: 'both', text: '质子束',
   }],
+  ['ZH-HANS', { name: 'Chinese (simplified)', type: 'target', text: '质子束' }],
+  ['ZH-HANT', { name: 'Chinese (traditional)', type: 'target', text: '質子束' }],
+  ['ZU', { name: 'Zulu', type: 'both', text: 'umcibisholo we-proton' }],
 ]);
 
 const glossaryLanguages = ['da', 'de', 'en', 'es', 'fr', 'it', 'ja', 'nb', 'nl', 'pl', 'pt', 'ru', 'sv', 'zh'];
@@ -217,6 +291,8 @@ function getGlossaryLanguagePairs() {
 function getBaseLanguageCode(langCode) {
   if (langCode.toUpperCase() === 'EN-GB' || langCode.toUpperCase() === 'EN-US') return 'EN';
   if (langCode.toUpperCase() === 'PT-BR' || langCode.toUpperCase() === 'PT-PT') return 'PT';
+  if (langCode.toUpperCase() === 'ZH-HANS' || langCode.toUpperCase() === 'ZH-HANT') return 'ZH';
+  if (langCode.toUpperCase() === 'ES-419') return 'ES';
   return langCode;
 }
 
