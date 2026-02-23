@@ -61,7 +61,9 @@ const languages = new Map([
     text: 'haz de protones',
     supports_write: true,
   }],
-  ['ES-419', { name: 'Spanish (Latin American)', type: 'target', formality: true, text: 'haz de protones' }],
+  ['ES-419', {
+    name: 'Spanish (Latin American)', type: 'target', formality: true, text: 'haz de protones',
+  }],
   ['ET', { name: 'Estonian', type: 'both', text: 'prootonikiirgus' }],
   ['EU', { name: 'Basque', type: 'both', text: 'protoi izpia' }],
   ['FA', { name: 'Persian', type: 'both', text: 'پرتو پروتون' }],
