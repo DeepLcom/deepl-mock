@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added many new languages to `/v2/languages` response to match the live API.
+- Add full CRUD support for `/v3/style_rules` endpoints: create, get, list, update name, and delete style rules
+- Add `PUT /v3/style_rules/{style_id}/configured_rules` endpoint for updating configured rules
+- Add CRUD support for custom instructions on style rules: create, get, update, and delete
 
 ### Security
 - Updated dependencies to fix GHSA-w7fw-mjwx-w883 (qs ReDoS vulnerability)
