@@ -772,7 +772,7 @@ async function handleStyleRuleCreate(req, res) {
     const name = getParam(req, 'name', { required: true });
     const language = getParam(req, 'language', { required: true, lower: true });
     const configuredRules = getParam(req, 'configured_rules', { default: {} });
-    const customInstructions = getParam(req, 'custom_instructions', { default: [] });
+    const customInstructions = getParam(req, 'custom_instructions', { default: [], multi: true });
 
     const styleRuleInfo = styleRules.createStyleRule(
       name,
