@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Fix parsing of `custom_instructions` parameter during style rule creation to correctly handle array values
 
 ## [1.20.0] - 2026-03-17
 ### Added
