@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Add `GET /v3/translation_memories` endpoint for listing translation memories
+- Add support for `translation_memory_id` and `translation_memory_threshold`
+  parameters in `/v2/translate`
+
 ### Fixed
 - Fix parsing of `custom_instructions` parameter during style rule creation to correctly handle array values
 - Fix list of languages that support write, styles and tones
