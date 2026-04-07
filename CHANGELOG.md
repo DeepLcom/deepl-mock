@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix parsing of `custom_instructions` parameter during style rule creation to correctly handle array values
 - Fix list of languages that support write, styles and tones
+- Fix error message returned when a language does not support styles or tones but one is configured.
 ### Security
 - Updated dependencies to fix GHSA-j3q9-mxjg-w52f and GHSA-27v5-c462-wpq7 (path-to-regexp DoS vulnerability)
 

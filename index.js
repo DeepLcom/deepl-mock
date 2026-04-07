@@ -134,8 +134,7 @@ function getParamWritingStyle(req, targetLang) {
     lower: true,
     validator: (style) => {
       if (!languages.supportsWritingStyle(targetLang, style)) {
-        const langName = languages.getLanguageName(targetLang);
-        throw new util.HttpError(`Language ${langName} does not support setting a writing style.`, 400);
+        throw new util.HttpError(`Language ${targetLang.toLowerCase()} does not support setting a writing style.`, 400);
       }
     },
   });
@@ -147,8 +146,7 @@ function getParamTone(req, targetLang) {
     lower: true,
     validator: (tone) => {
       if (!languages.supportsWritingTone(targetLang, tone)) {
-        const langName = languages.getLanguageName(targetLang);
-        throw new util.HttpError(`Language ${langName} does not support setting a tone.`, 400);
+        throw new util.HttpError(`Language ${targetLang.toLowerCase()} does not support setting a tone.`, 400);
       }
     },
   });
