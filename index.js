@@ -41,6 +41,7 @@ const glossariesV2 = require('./glossariesV2');
 const glossariesV3 = require('./glossariesV3');
 const languages = require('./languages');
 const styleRules = require('./styleRules');
+const translationMemories = require('./translationMemories');
 const { writingStyles, WritingStyle } = require('./writing_styles');
 const { writingTones, WritingTone } = require('./writing_tones');
 const util = require('./util');
@@ -183,6 +184,33 @@ function getParamStyleRule(req, targetLang) {
   return undefined;
 }
 
+function getParamTranslationMemory(req, targetLang) {
+  const { authKey } = req.user_account;
+  const tmId = getParam(req, 'translation_memory_id', {
+    validator: (id) => (
+      id === undefined || translationMemories.isValidTranslationMemoryId(id)
+    ),
+  });
+  const threshold = getParam(req, 'translation_memory_threshold');
+  if (threshold !== undefined) {
+    const thresholdNum = Number.parseInt(threshold, 10);
+    if (Number.isNaN(thresholdNum) || thresholdNum < 0 || thresholdNum > 100) {
+      throw new util.HttpError('Parameter "translation_memory_threshold" must be an integer between 0 and 100', 400);
+    }
+  }
+  if (tmId !== undefined) {
+    const tm = translationMemories.getTranslationMemory(tmId, authKey);
+    const requestTargetLang = languages.getBaseLanguageCode(targetLang.toUpperCase());
+    const tmTargetLangs = tm.targetLanguages
+      .map((lang) => languages.getBaseLanguageCode(lang.toUpperCase()));
+    if (!tmTargetLangs.includes(requestTargetLang)) {
+      throw new util.HttpError(`Translation Memory ${tmId} does not support the target language ${targetLang}`, 404);
+    }
+    return tm;
+  }
+  return undefined;
+}
+
 function getParamGlossaryId(req, required = true) {
   return getParam(req, 'glossary_id',
     {
@@ -313,6 +341,7 @@ async function handleTranslate(req, res) {
     const showBilledCharacters = getParam(req, 'show_billed_characters', { default: false, allowedValues: ['0', '1', true, false] });
     const modelType = getParam(req, 'model_type', { allowedValues: ['quality_optimized', 'latency_optimized', 'prefer_quality_optimized'] });
     getParamStyleRule(req, targetLang);
+    getParamTranslationMemory(req, targetLang);
 
     // Calculate the character count of the requested translation
     const totalCharacters = textArray.reduce((total, text) => (total + text.length), 0);
@@ -940,6 +969,29 @@ async function handleCustomInstructionDelete(req, res) {
   }
 }
 
+async function handleTranslationMemoryList(req, res) {
+  try {
+    const { authKey } = req.user_account;
+    const pageSizeAllowedValues = Array.from({ length: 25 }, (_, i) => String(i + 1));
+
+    const pageStr = getParam(req, 'page', { default: '0' });
+    const pageSizeStr = getParam(req, 'page_size', { default: '10', allowedValues: pageSizeAllowedValues });
+    const page = Number.parseInt(pageStr, 10);
+    const pageSize = Number.parseInt(pageSizeStr, 10);
+
+    // Validate page is non-negative
+    if (Number.isNaN(page) || page < 0) {
+      throw new util.HttpError('Parameter "page" must be a non-negative integer', 400);
+    }
+
+    const tmList = translationMemories.getTranslationMemoryInfoList(authKey, page, pageSize);
+    res.status(200).send(tmList);
+  } catch (err) {
+    console.log(err.message);
+    res.status(err.status()).send();
+  }
+}
+
 app.use('/v2/languages', express.json());
 app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
 app.post('/v2/languages', auth, requireUserAgent, handleLanguages);
@@ -990,6 +1042,9 @@ app.delete('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleV3Glossa
 app.delete('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryDelete);
 app.patch('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryPatch);
 app.put('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryPut);
+
+app.use('/v3/translation_memories', express.json());
+app.get('/v3/translation_memories', auth, requireUserAgent, handleTranslationMemoryList.bind(null));
 
 app.use('/v3/style_rules', express.json());
 app.get('/v3/style_rules', auth, requireUserAgent, handleStyleRuleList.bind(null));
