@@ -43,15 +43,15 @@ class HttpError extends Error {
 // Before further complicating this implementation, it might make sense to switch
 // to a library.
 function convertToBcp47(langCode) {
-  let tokens = langCode.split('-');
-  const numTokens = tokens.length;
-  tokens = tokens.map((token, index) => {
-    if (index !== 0 && index === numTokens - 1) {
-      return token.toUpperCase();
+  const tokens = langCode.split('-');
+  return tokens.map((token, index) => {
+    if (index === 0) return token.toLowerCase();
+    // Script subtags are exactly 4 alphabetic characters and use title case (e.g. Hans, Hant)
+    if (token.length === 4 && /^[a-zA-Z]{4}$/.test(token)) {
+      return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
     }
-    return token.toLowerCase();
-  });
-  return tokens.join('-');
+    return token.toUpperCase();
+  }).join('-');
 }
 
 /**

@@ -1,0 +1,23 @@
+{
+  "Name": "write",
+  "SupportedLanguages": [
+    "de", "en", "en-GB", "en-US", "es", "fr", "it", "ja", "ko", "pt", "pt-BR", "pt-PT", "zh", "zh-Hans"
+  ],
+  "Features": [
+    {
+      "Name": "auto_detection",
+      "RequiredOnSource": true,
+      "Languages": ["de", "en", "es", "fr", "it", "ja", "ko", "pt", "zh"]
+    },
+    {
+      "Name": "writing_style",
+      "RequiredOnTarget": true,
+      "Languages": ["de", "en-GB", "en-US"]
+    },
+    {
+      "Name": "tone",
+      "RequiredOnTarget": true,
+      "Languages": ["de", "en-GB", "en-US"]
+    }
+  ]
+}

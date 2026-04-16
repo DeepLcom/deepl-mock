@@ -25,7 +25,8 @@
   "devDependencies": {
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.25.4"
+    "eslint-plugin-import": "^2.25.4",
+    "jest": "^30.3.0"
   },
   "engines": {
     "node": ">=18"
@@ -43,7 +44,13 @@
   ],
   "scripts": {
     "start": "DEEPL_MOCK_SERVER_PORT=${DEEPL_MOCK_SERVER_PORT:-3000} DEEPL_MOCK_PROXY_SERVER_PORT=${DEEPL_MOCK_PROXY_SERVER_PORT:-3001} node index.js",
+    "test": "jest",
     "lint": "eslint .",
     "lintfix": "eslint . --fix"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/test/*.test.js"],
+    "testTimeout": 10000
   }
 }

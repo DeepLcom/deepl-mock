@@ -1,0 +1,49 @@
+{
+  "Name": "voice",
+  "SupportedLanguages": [
+    "ar",    "bg",    "bn",    "cs",    "da",    "de",    "el",    "en",
+    "en-GB", "en-US", "es",    "et",    "fi",    "fr",    "ga",    "he",
+    "hr",    "hu",    "id",    "it",    "ja",    "ko",    "lt",    "lv",    "mt",
+    "nb",    "nl",    "pl",    "pt",    "pt-BR", "pt-PT", "ro",    "ru",
+    "sk",    "sl",    "sv",    "th",    "tl",    "tr",    "uk",    "vi",
+    "zh",    "zh-Hans", "zh-Hant"
+  ],
+  "Features": [
+    {
+      "Name": "glossary",
+      "RequiredOnSource": true,
+      "RequiredOnTarget": true,
+      "Languages": ["ar", "bg", "cs", "da", "de", "el", "en", "en-GB", "en-US", "es", "et", "fi", "fr", "he", "hu", "id", "it", "ja", "ko", "lt", "lv", "nb", "nl", "pl", "pt", "pt-BR", "pt-PT", "ro", "ru", "sk", "sl", "sv", "tr", "uk", "vi", "zh", "zh-Hans", "zh-Hant"]
+    },
+    {
+      "Name": "auto_detection",
+      "RequiredOnSource": true,
+      "Languages": ["cs", "de", "en", "es", "fi", "fr", "id", "it", "ja", "ko", "nl", "pl", "pt", "ro", "ru", "sv", "tr", "uk", "zh"]
+    },
+    {
+      "Name": "transcription",
+      "RequiredOnSource": true,
+      "Languages": ["cs", "de", "en", "es", "fi", "fr", "id", "it", "ja", "ko", "nl", "pl", "pt", "ro", "ru", "sv", "tr", "uk", "zh"]
+    },
+    {
+      "Name": "transcription_external",
+      "RequiredOnSource": true,
+      "Languages": ["ar", "bg", "bn", "da", "el", "et", "ga", "he", "hr", "hu", "lt", "lv", "mt", "nb", "sk", "sl", "th", "tl", "vi"]
+    },
+    {
+      "Name": "formality",
+      "RequiredOnTarget": true,
+      "Languages": ["de", "es", "fr", "it", "ja", "pl", "pt", "pt-BR", "pt-PT", "ru"]
+    },
+    {
+      "Name": "translated_speech",
+      "RequiredOnTarget": true,
+      "Languages": ["de", "en", "en-GB", "en-US", "es", "fr", "it", "ja", "ko", "nl", "pl", "pt", "pt-BR", "pt-PT", "ru", "sv", "tr", "zh", "zh-Hans", "zh-Hant"]
+    },
+    {
+      "Name": "translated_speech_external",
+      "RequiredOnTarget": true,
+      "Languages": ["ar", "bg", "cs", "da", "el", "fi", "hu", "id", "nb", "ro", "sk", "uk", "vi"]
+    }
+  ]
+}

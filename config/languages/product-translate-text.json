@@ -1,0 +1,46 @@
+{
+  "Name": "translate_text",
+  "SupportedLanguages": [
+    "ace", "af",  "an",  "ar",    "as",  "ay",  "az",  "ba",  "be",  "bg",
+    "bho", "bn",  "br",  "bs",    "ca",  "ceb", "ckb", "cs",  "cy",  "da",
+    "de",  "el",  "en",  "en-GB", "en-US", "eo", "es", "es-419", "et", "eu",
+    "fa",  "fi",  "fr",  "ga",    "gl",  "gn",  "gom", "gu",  "ha",  "he",
+    "hi",  "hr",  "ht",  "hu",    "hy",  "id",  "ig",  "is",  "it",  "ja",
+    "jv",  "ka",  "kk",  "kmr",   "ko",  "ky",  "la",  "lb",  "lmo", "ln",
+    "lt",  "lv",  "mai", "mg",    "mi",  "mk",  "ml",  "mn",  "mr",  "ms",
+    "mt",  "my",  "nb",  "ne",    "nl",  "oc",  "om",  "pa",  "pag", "pam",
+    "pl",  "prs", "ps",  "pt",    "pt-BR", "pt-PT", "qu", "ro", "ru", "sa",
+    "scn", "sk",  "sl",  "sq",    "sr",  "st",  "su",  "sv",  "sw",  "ta",
+    "te",  "tg",  "th",  "tk",    "tl",  "tn",  "tr",  "ts",  "tt",  "uk",
+    "ur",  "uz",  "vi",  "wo",    "xh",  "yi",  "yue", "zh",  "zh-Hans", "zh-Hant",
+    "zu"
+  ],
+  "Features": [
+    {
+      "Name": "auto_detection",
+      "RequiredOnSource": true,
+      "Languages": ["ar", "bg", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr", "he", "hu", "id", "it", "ja", "ko", "lt", "lv", "nb", "nl", "pl", "pt", "ro", "ru", "sk", "sl", "sv", "tr", "uk", "vi", "zh"]
+    },
+    {
+      "Name": "tag_handling",
+      "RequiredOnSource": true,
+      "RequiredOnTarget": true
+    },
+    {
+      "Name": "formality",
+      "RequiredOnTarget": true,
+      "Languages": ["de", "es", "es-419", "fr", "it", "ja", "nl", "pl", "pt", "pt-BR", "pt-PT", "ru"]
+    },
+    {
+      "Name": "custom_instructions",
+      "RequiredOnTarget": true,
+      "Languages": ["de", "en", "en-GB", "en-US", "es", "fr", "it", "ja", "ko", "zh", "zh-Hans", "zh-Hant"]
+    },
+    {
+      "Name": "glossary",
+      "RequiredOnSource": true,
+      "RequiredOnTarget": true,
+      "Languages": ["ar", "bg", "cs", "da", "de", "el", "en", "en-GB", "en-US", "es", "es-419", "et", "fi", "fr", "he", "hu", "id", "it", "ja", "ko", "lt", "lv", "nb", "nl", "pl", "pt", "pt-BR", "pt-PT", "ro", "ru", "sk", "sl", "sv", "tr", "uk", "vi", "zh", "zh-Hans", "zh-Hant"]
+    }
+  ]
+}
