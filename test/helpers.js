@@ -8,6 +8,8 @@ const http = require('http');
 const BASE_URL = process.env.DEEPL_SERVER_URL || 'http://localhost:3000';
 const AUTH_KEY = process.env.DEEPL_AUTH_KEY || 'test:fx';
 
+// Sends an authenticated GET request and returns { status, data }.
+// data is the parsed JSON body on 200, null otherwise.
 function get(path) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, BASE_URL);
