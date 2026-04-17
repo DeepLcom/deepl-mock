@@ -12,6 +12,15 @@ stages:
   - test
   - build
 
+unit-test:
+  stage: test
+  image: node:lts
+  script:
+    - npm install
+    - npm start &
+    - sleep 3
+    - DEEPL_SERVER_URL=http://localhost:3000 DEEPL_AUTH_KEY=test:fx npm test
+
 gitlab-advanced-sast:
   stage: check
   rules:
