@@ -7,44 +7,7 @@
 // Run against mock:  DEEPL_SERVER_URL=http://localhost:3000 DEEPL_AUTH_KEY=test:fx npm test
 // Run against live:  DEEPL_SERVER_URL=https://api.deepl.com DEEPL_AUTH_KEY=<key> npm test
 
-const https = require('https');
-const http = require('http');
-
-const BASE_URL = process.env.DEEPL_SERVER_URL || 'http://localhost:3000';
-const AUTH_KEY = process.env.DEEPL_AUTH_KEY || 'test:fx';
-
-// ---------------------------------------------------------------------------
-// HTTP client
-// ---------------------------------------------------------------------------
-
-function get(path) {
-  return new Promise((resolve, reject) => {
-    const url = new URL(path, BASE_URL);
-    const lib = url.protocol === 'https:' ? https : http;
-    const req = lib.request(
-      {
-        hostname: url.hostname,
-        port: url.port || (url.protocol === 'https:' ? 443 : 80),
-        path: url.pathname + url.search,
-        method: 'GET',
-        headers: {
-          'User-Agent': 'v3-languages-test',
-          Authorization: `DeepL-Auth-Key ${AUTH_KEY}`,
-        },
-      },
-      (res) => {
-        let body = '';
-        res.on('data', (chunk) => { body += chunk; });
-        res.on('end', () => resolve({
-          status: res.statusCode,
-          data: res.statusCode === 200 ? JSON.parse(body) : null,
-        }));
-      },
-    );
-    req.on('error', reject);
-    req.end();
-  });
-}
+const { get } = require('./helpers');
 
 // ---------------------------------------------------------------------------
 // Helpers
