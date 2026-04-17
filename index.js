@@ -990,6 +990,31 @@ async function handleTranslationMemoryList(req, res) {
   }
 }
 
+function handleHealthz(req, res) {
+  res.status(200).send('ok');
+}
+
+async function handleV3Languages(req, res) {
+  try {
+    const product = getParam(req, 'product', {
+      required: true,
+      allowedValues: languages.VALID_PRODUCTS,
+      newErrorMessage: true,
+    });
+    res.status(200).send(languages.getV3Languages(product));
+  } catch (err) {
+    res.status(400).send({ message: err.message });
+  }
+}
+
+async function handleV3LanguageProducts(req, res) {
+  try {
+    res.status(200).send(languages.getV3Products());
+  } catch (err) {
+    res.status(400).send({ message: err.message });
+  }
+}
+
 app.use('/v2/languages', express.json());
 app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
 app.post('/v2/languages', auth, requireUserAgent, handleLanguages);
@@ -1056,33 +1081,12 @@ app.get('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, r
 app.put('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionUpdate.bind(null));
 app.delete('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionDelete.bind(null));
 
-async function handleV3Languages(req, res) {
-  try {
-    const product = getParam(req, 'product', {
-      required: true,
-      allowedValues: languages.VALID_PRODUCTS,
-      newErrorMessage: true,
-    });
-    res.status(200).send(languages.getV3Languages(product));
-  } catch (err) {
-    res.status(400).send({ message: err.message });
-  }
-}
-
-async function handleV3LanguageProducts(req, res) {
-  try {
-    res.status(200).send(languages.getV3Products());
-  } catch (err) {
-    res.status(400).send({ message: err.message });
-  }
-}
-
 app.use('/v3/languages', express.json());
 // More-specific sub-paths must be registered before the base /v3/languages route
 app.get('/v3/languages/products', auth, requireUserAgent, handleV3LanguageProducts);
 app.get('/v3/languages', auth, requireUserAgent, handleV3Languages);
 
-app.get('/healthz', (req, res) => { res.status(200).send('ok'); });
+app.get('/healthz', handleHealthz);
 
 app.all('/*path', (req, res) => {
   res.status(404).send();
