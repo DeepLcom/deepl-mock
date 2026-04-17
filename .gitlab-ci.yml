@@ -16,9 +16,9 @@ unit-test:
   stage: test
   image: node:lts
   script:
-    - npm install
+    - npm ci
     - npm start &
-    - sleep 3
+    - for i in $(seq 1 30); do curl -sf http://localhost:3000 > /dev/null && break || sleep 1; done
     - DEEPL_SERVER_URL=http://localhost:3000 DEEPL_AUTH_KEY=test:fx npm test
 
 gitlab-advanced-sast:
