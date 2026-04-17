@@ -1082,6 +1082,8 @@ app.use('/v3/languages', express.json());
 app.get('/v3/languages/products', auth, requireUserAgent, handleV3LanguageProducts);
 app.get('/v3/languages', auth, requireUserAgent, handleV3Languages);
 
+app.get('/healthz', (req, res) => { res.status(200).send('ok'); });
+
 app.all('/*path', (req, res) => {
   res.status(404).send();
 });

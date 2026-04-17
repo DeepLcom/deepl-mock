@@ -18,7 +18,7 @@ unit-test:
   script:
     - npm ci
     - npm start &
-    - for i in $(seq 1 30); do curl -sf http://localhost:3000 > /dev/null && break || sleep 1; done
+    - for i in $(seq 1 30); do curl -sf http://localhost:3000/healthz > /dev/null && break || sleep 1; done
     - DEEPL_SERVER_URL=http://localhost:3000 DEEPL_AUTH_KEY=test:fx npm test
 
 gitlab-advanced-sast:
