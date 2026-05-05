@@ -2,7 +2,6 @@
 // Use of this source code is governed by an MIT
 // license that can be found in the LICENSE file.
 
-const uuid = require('uuid');
 const util = require('./util');
 
 const translationMemories = new Map();
@@ -34,7 +33,7 @@ function extractTranslationMemoryInfo(tm) {
 }
 
 function isValidTranslationMemoryId(tmId) {
-  return uuid.validate(tmId);
+  return util.isValidUuid(tmId);
 }
 
 function getTranslationMemory(tmId, authKey) {

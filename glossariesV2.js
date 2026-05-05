@@ -2,7 +2,7 @@
 // Use of this source code is governed by an MIT
 // license that can be found in the LICENSE file.
 
-const uuid = require('uuid');
+const { randomUUID } = require('node:crypto');
 const csvParser = require('./glossariesCsvParser');
 const util = require('./util');
 const languages = require('./languages');
@@ -65,7 +65,7 @@ function extractGlossaryInfo(glossary) {
 }
 
 function isValidGlossaryId(glossaryId) {
-  return uuid.validate(glossaryId);
+  return util.isValidUuid(glossaryId);
 }
 
 function translateWithGlossary(entryList, input) {
@@ -89,7 +89,7 @@ async function createGlossary(name, authKey, targetLang, sourceLang, entriesForm
   } else {
     entryList = await csvParser.convertGlossaryEntriesCsvToList(entries, sourceLang, targetLang);
   }
-  const glossaryId = uuid.v1();
+  const glossaryId = randomUUID();
 
   // Add glossary to list
   const glossary = {

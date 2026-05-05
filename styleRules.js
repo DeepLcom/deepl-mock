@@ -2,7 +2,7 @@
 // Use of this source code is governed by an MIT
 // license that can be found in the LICENSE file.
 
-const uuid = require('uuid');
+const { randomUUID } = require('node:crypto');
 const util = require('./util');
 
 const styleRules = new Map();
@@ -47,7 +47,7 @@ function extractStyleRuleInfo(styleRule, detailed = false) {
 }
 
 function isValidStyleId(styleId) {
-  return uuid.validate(styleId);
+  return util.isValidUuid(styleId);
 }
 
 function getStyleRule(styleId, authKey) {
@@ -101,14 +101,14 @@ function createStyleRule(name, language, authKey, configuredRules = {}, customIn
       throw new util.HttpError('Each custom instruction must have a prompt of at most 300 characters', 400);
     }
     return {
-      id: uuid.v4(),
+      id: randomUUID(),
       label: instruction.label || '',
       prompt: instruction.prompt,
       source_language: instruction.source_language || language,
     };
   });
 
-  const styleId = uuid.v4();
+  const styleId = randomUUID();
   const now = new Date();
 
   const styleRule = {
@@ -165,7 +165,7 @@ function createCustomInstruction(styleId, authKey, label, prompt, sourceLanguage
   }
 
   const instruction = {
-    id: uuid.v4(),
+    id: randomUUID(),
     label: label || '',
     prompt,
     source_language: sourceLanguage || styleRule.language,

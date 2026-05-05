@@ -19,8 +19,7 @@
     "http-proxy": "^1.18.1",
     "morgan": "^1.10.0",
     "nocache": "^3.0.1",
-    "qs": "^6.15.0",
-    "uuid": "^8.3.2"
+    "qs": "^6.15.0"
   },
   "devDependencies": {
     "eslint": "^7.32.0",
