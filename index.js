@@ -45,6 +45,7 @@ const translationMemories = require('./translationMemories');
 const { writingStyles, WritingStyle } = require('./writing_styles');
 const { writingTones, WritingTone } = require('./writing_tones');
 const util = require('./util');
+const { installResponseValidator, validationErrorHandler } = require('./response-validator');
 
 // Add X-Trace-ID header to all responses
 app.use((req, res, next) => {
@@ -1015,103 +1016,116 @@ async function handleV3LanguageProducts(req, res) {
   }
 }
 
-app.use('/v2/languages', express.json());
-app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
-app.post('/v2/languages', auth, requireUserAgent, handleLanguages);
+async function startServer() {
+  // Optionally install response validation (enabled via VALIDATE_RESPONSES=1)
+  await installResponseValidator(app);
 
-app.use('/v2/usage', express.json());
-app.get('/v2/usage', auth, requireUserAgent, handleUsage);
-app.post('/v2/usage', auth, requireUserAgent, handleUsage);
+  app.use('/v2/languages', express.json());
+  app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
+  app.post('/v2/languages', auth, requireUserAgent, handleLanguages);
 
-app.use('/v2/translate', express.json());
-app.get('/v2/translate', auth, requireUserAgent, handleTranslate);
-app.post('/v2/translate', auth, requireUserAgent, handleTranslate);
+  app.use('/v2/usage', express.json());
+  app.get('/v2/usage', auth, requireUserAgent, handleUsage);
+  app.post('/v2/usage', auth, requireUserAgent, handleUsage);
 
-// (internal only) Note that this is not a real endpoint on the DeepL API. It is only included
-// to support testing path overrides in the client libraries.
-app.use('/v2/translate_secondary', express.json());
-app.post('/v2/translate_secondary', auth, requireUserAgent, handleTranslate);
+  app.use('/v2/translate', express.json());
+  app.get('/v2/translate', auth, requireUserAgent, handleTranslate);
+  app.post('/v2/translate', auth, requireUserAgent, handleTranslate);
 
-app.use('/v2/write/rephrase', express.json());
-app.get('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);
-app.post('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);
+  // (internal only) Note that this is not a real endpoint on the DeepL API. It is only included
+  // to support testing path overrides in the client libraries.
+  app.use('/v2/translate_secondary', express.json());
+  app.post('/v2/translate_secondary', auth, requireUserAgent, handleTranslate);
 
-app.post('/v2/document', auth, requireUserAgent, handleDocument);
+  app.use('/v2/write/rephrase', express.json());
+  app.get('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);
+  app.post('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);
 
-app.use('/v2/document/:document_id', express.json());
-app.get('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
-app.post('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
+  app.post('/v2/document', auth, requireUserAgent, handleDocument);
 
-app.use('/v2/document/:document_id/result', express.json());
-app.get('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
-app.post('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
+  app.use('/v2/document/:document_id', express.json());
+  app.get('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
+  app.post('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
 
-// Maximum glossary size is 10MiB, but there is some extra request overhead
-app.use('/v2/glossaries', express.json({ limit: '11mb' }));
-app.get('/v2/glossary-language-pairs', auth, requireUserAgent, handleGlossaryLanguages);
-app.post('/v2/glossaries', auth, requireUserAgent, handleV2GlossaryCreate.bind(null));
-app.get('/v2/glossaries', auth, requireUserAgent, handleV2GlossaryList.bind(null));
-app.get('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleV2GlossaryList.bind(null));
-app.get('/v2/glossaries/:glossary_id/entries', auth, requireUserAgent, handleV2GlossaryEntries.bind(null));
-app.delete('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleV2GlossaryDelete.bind(null));
+  app.use('/v2/document/:document_id/result', express.json());
+  app.get('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
+  app.post('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
 
-// Maximum glossary size is 10MiB, but there is some extra request overhead
-app.use('/v3/glossaries', express.json({ limit: '11mb' }));
-app.post('/v3/glossaries', auth, requireUserAgent, handleV3GlossaryCreate.bind(null));
-app.get('/v3/glossaries', auth, requireUserAgent, handleV3GlossaryList.bind(null));
-app.get('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleV3GlossaryList.bind(null));
-app.get('/v3/glossaries/:glossary_id/entries', auth, requireUserAgent, handleV3GlossaryEntries.bind(null));
-app.delete('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleV3GlossaryDelete.bind(null));
-app.delete('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryDelete);
-app.patch('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryPatch);
-app.put('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryPut);
+  // Maximum glossary size is 10MiB, but there is some extra request overhead
+  app.use('/v2/glossaries', express.json({ limit: '11mb' }));
+  app.get('/v2/glossary-language-pairs', auth, requireUserAgent, handleGlossaryLanguages);
+  app.post('/v2/glossaries', auth, requireUserAgent, handleV2GlossaryCreate.bind(null));
+  app.get('/v2/glossaries', auth, requireUserAgent, handleV2GlossaryList.bind(null));
+  app.get('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleV2GlossaryList.bind(null));
+  app.get('/v2/glossaries/:glossary_id/entries', auth, requireUserAgent, handleV2GlossaryEntries.bind(null));
+  app.delete('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleV2GlossaryDelete.bind(null));
 
-app.use('/v3/translation_memories', express.json());
-app.get('/v3/translation_memories', auth, requireUserAgent, handleTranslationMemoryList.bind(null));
+  // Maximum glossary size is 10MiB, but there is some extra request overhead
+  app.use('/v3/glossaries', express.json({ limit: '11mb' }));
+  app.post('/v3/glossaries', auth, requireUserAgent, handleV3GlossaryCreate.bind(null));
+  app.get('/v3/glossaries', auth, requireUserAgent, handleV3GlossaryList.bind(null));
+  app.get('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleV3GlossaryList.bind(null));
+  app.get('/v3/glossaries/:glossary_id/entries', auth, requireUserAgent, handleV3GlossaryEntries.bind(null));
+  app.delete('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleV3GlossaryDelete.bind(null));
+  app.delete('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryDelete);
+  app.patch('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryPatch);
+  app.put('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryPut);
 
-app.use('/v3/style_rules', express.json());
-app.get('/v3/style_rules', auth, requireUserAgent, handleStyleRuleList.bind(null));
-app.post('/v3/style_rules', auth, requireUserAgent, handleStyleRuleCreate.bind(null));
-app.get('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRuleGet.bind(null));
-app.patch('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRulePatch.bind(null));
-app.delete('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRuleDelete.bind(null));
-app.put('/v3/style_rules/:style_id/configured_rules', auth, requireUserAgent, handleConfiguredRulesUpdate.bind(null));
-app.post('/v3/style_rules/:style_id/custom_instructions', auth, requireUserAgent, handleCustomInstructionCreate.bind(null));
-app.get('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionGet.bind(null));
-app.put('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionUpdate.bind(null));
-app.delete('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionDelete.bind(null));
+  app.use('/v3/translation_memories', express.json());
+  app.get('/v3/translation_memories', auth, requireUserAgent, handleTranslationMemoryList.bind(null));
 
-app.use('/v3/languages', express.json());
-// More-specific sub-paths must be registered before the base /v3/languages route
-app.get('/v3/languages/products', auth, requireUserAgent, handleV3LanguageProducts);
-app.get('/v3/languages', auth, requireUserAgent, handleV3Languages);
+  app.use('/v3/style_rules', express.json());
+  app.get('/v3/style_rules', auth, requireUserAgent, handleStyleRuleList.bind(null));
+  app.post('/v3/style_rules', auth, requireUserAgent, handleStyleRuleCreate.bind(null));
+  app.get('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRuleGet.bind(null));
+  app.patch('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRulePatch.bind(null));
+  app.delete('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRuleDelete.bind(null));
+  app.put('/v3/style_rules/:style_id/configured_rules', auth, requireUserAgent, handleConfiguredRulesUpdate.bind(null));
+  app.post('/v3/style_rules/:style_id/custom_instructions', auth, requireUserAgent, handleCustomInstructionCreate.bind(null));
+  app.get('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionGet.bind(null));
+  app.put('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionUpdate.bind(null));
+  app.delete('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionDelete.bind(null));
 
-app.get('/healthz', handleHealthz);
+  app.use('/v3/languages', express.json());
+  // More-specific sub-paths must be registered before the base /v3/languages route
+  app.get('/v3/languages/products', auth, requireUserAgent, handleV3LanguageProducts);
+  app.get('/v3/languages', auth, requireUserAgent, handleV3Languages);
 
-app.all('/*path', (req, res) => {
-  res.status(404).send();
-});
+  app.get('/healthz', handleHealthz);
 
-const server = app.listen(port, () => {
-  console.log(`DeepL API mock-server listening on port ${port}`);
-}).on('error', (error) => {
-  console.error(`Error occurred while starting the server: ${error}`);
+  app.all('/*path', (req, res) => {
+    res.status(404).send();
+  });
+
+  // Error handler for response validation failures
+  app.use(validationErrorHandler);
+
+  const server = app.listen(port, () => {
+    console.log(`DeepL API mock-server listening on port ${port}`);
+  }).on('error', (error) => {
+    console.error(`Error occurred while starting the server: ${error}`);
+    process.exit(1);
+  });
+
+  server.keepAliveTimeout = 10 * 1000;
+
+  if (!Number.isNaN(proxyPort)) {
+    const proxyApp = express();
+    const proxy = httpProxy.createProxyServer({});
+    proxyApp.all('*path', (req, res) => {
+      console.log('Proxying request:', req.method, req.url);
+      req.headers.forwarded = `for=${req.ip}`;
+      proxy.web(req, res, { target: `http://localhost:${port}` }, (err) => {
+        console.log('Error while proxying request:', err);
+      });
+    });
+    proxyApp.listen(proxyPort, () => {
+      console.log(`DeepL API mock-proxy-server listening on port ${proxyPort}`);
+    });
+  }
+}
+
+startServer().catch((err) => {
+  console.error(`Failed to start server: ${err}`);
   process.exit(1);
 });
-
-server.keepAliveTimeout = 10 * 1000;
-
-if (!Number.isNaN(proxyPort)) {
-  const proxyApp = express();
-  const proxy = httpProxy.createProxyServer({});
-  proxyApp.all('*path', (req, res) => {
-    console.log('Proxying request:', req.method, req.url);
-    req.headers.forwarded = `for=${req.ip}`;
-    proxy.web(req, res, { target: `http://localhost:${port}` }, (err) => {
-      console.log('Error while proxying request:', err);
-    });
-  });
-  proxyApp.listen(proxyPort, () => {
-    console.log(`DeepL API mock-proxy-server listening on port ${proxyPort}`);
-  });
-}

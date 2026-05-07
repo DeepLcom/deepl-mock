@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `GET /v3/translation_memories` endpoint for listing translation memories
 - Add support for `translation_memory_id` and `translation_memory_threshold`
   parameters in `/v2/translate`
+- Add opt-in response validation against the DeepL OpenAPI spec. Enable by
+  setting `VALIDATE_RESPONSES=1`; every response body is then validated and
+  schema mismatches surface as structured errors. Spec source defaults to the
+  public DeepL spec on GitHub and can be overridden with `DEEPL_MOCK_SPEC_URL`
+  (fetch from URL) or `DEEPL_MOCK_SPEC_PATH` (read from a local file).
 
 ### Fixed
 - Fix parsing of `custom_instructions` parameter during style rule creation to correctly handle array values
@@ -18,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix error message returned when a language does not support styles or tones but one is configured.
 ### Security
 - Updated dependencies to fix GHSA-j3q9-mxjg-w52f and GHSA-27v5-c462-wpq7 (path-to-regexp DoS vulnerability)
+- Updated follow-redirects to fix GHSA-r4q5-vmmm-2653 (auth header leak on cross-domain redirects)
 
 ## [1.20.0] - 2026-03-17
 ### Added

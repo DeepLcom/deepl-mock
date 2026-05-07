@@ -63,6 +63,36 @@ npm start
 If you are executing unit tests of an official DeepL client library the **DEEPL_SERVER_URL** and
 **DEEPL_PROXY_URL** environment variables should also be updated.
 
+## Response validation (optional)
+
+Set **VALIDATE_RESPONSES=1** to validate every response body against the DeepL
+[OpenAPI spec](https://github.com/DeepLcom/openapi) at runtime. Mismatches are
+returned as a 500 with `{ message, errors }` listing the field and the specific
+schema rule that failed, useful for catching mock/spec drift during development.
+
+The spec is fetched from the public DeepL spec on GitHub at startup. To use a
+different source, set exactly one of:
+
+- **DEEPL_MOCK_SPEC_URL** — fetch the spec from this URL
+- **DEEPL_MOCK_SPEC_PATH** — read the spec from a local file
+
+Setting both, or failing to load the spec, is a startup error — validation
+never silently degrades to off.
+
+```shell
+VALIDATE_RESPONSES=1 npm start
+```
+
+The test suite for the response-validation middleware is a standalone Node
+script (it spawns the server on free ports), not a Jest test, so it is not
+picked up by `npm test`. Run it explicitly:
+
+```shell
+node test/test_response_validation.js
+# Override the base port if 4010-4014 are in use:
+TEST_PORT_BASE=5010 node test/test_response_validation.js
+```
+
 ## Server configuration via HTTP-request header
 The HTTP-request header **mock-server-session** may be sent with any request, containing a unique string identifying the
 test session. A session identifier could be, for example, a test-case name and UUID.

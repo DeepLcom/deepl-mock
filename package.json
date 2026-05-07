@@ -16,7 +16,9 @@
     "csv-parser": "^3.0.0",
     "express": "^5.2.1",
     "express-fileupload": "1.4.2",
+    "express-openapi-validator": "^5.6.2",
     "http-proxy": "^1.18.1",
+    "js-yaml": "^4.1.1",
     "morgan": "^1.10.0",
     "nocache": "^3.0.1",
     "qs": "^6.15.0"
@@ -33,13 +35,22 @@
   "files": [
     "auth.js",
     "CHANGELOG.md",
+    "config/",
     "documents.js",
+    "glossariesCsvParser.js",
+    "glossariesV2.js",
+    "glossariesV3.js",
     "languages.js",
     "LICENSE",
     "index.js",
     "README.md",
+    "response-validator.js",
     "sessions.js",
-    "util.js"
+    "styleRules.js",
+    "translationMemories.js",
+    "util.js",
+    "writing_styles.js",
+    "writing_tones.js"
   ],
   "scripts": {
     "start": "DEEPL_MOCK_SERVER_PORT=${DEEPL_MOCK_SERVER_PORT:-3000} DEEPL_MOCK_PROXY_SERVER_PORT=${DEEPL_MOCK_PROXY_SERVER_PORT:-3001} node index.js",
