@@ -63,12 +63,24 @@ npm start
 If you are executing unit tests of an official DeepL client library the **DEEPL_SERVER_URL** and
 **DEEPL_PROXY_URL** environment variables should also be updated.
 
-## Response validation (optional)
+## Spec validation (optional)
 
-Set **VALIDATE_RESPONSES=1** to validate every response body against the DeepL
-[OpenAPI spec](https://github.com/DeepLcom/openapi) at runtime. Mismatches are
-returned as a 500 with `{ message, errors }` listing the field and the specific
-schema rule that failed, useful for catching mock/spec drift during development.
+Two opt-in flags validate request and response bodies against the DeepL
+[OpenAPI spec](https://github.com/DeepLcom/openapi) at runtime. Both default
+to off and can be enabled independently:
+
+- **VALIDATE_RESPONSES=1** — validate every response body. Mismatches are
+  returned as a 500 with `{ message, errors }` listing the field and the
+  specific schema rule that failed, useful for catching mock/spec drift
+  during development.
+- **VALIDATE_REQUESTS=1** — validate every request body, query and path
+  parameter. Mismatches are returned as a 4xx with the same `{ message, errors }`
+  shape. Useful for catching SDK request-shape regressions (unknown fields,
+  wrong types, missing required params) against any test that hits the mock.
+
+Tests that deliberately send non-spec-conforming bodies (for example, the
+`extra_body_parameters` fixtures in client libraries) can bypass request
+validation on a per-session basis with `mock-server-session-allow-extra-body: 1`.
 
 The spec is fetched from the public DeepL spec on GitHub at startup. To use a
 different source, set exactly one of:
@@ -80,18 +92,38 @@ Setting both, or failing to load the spec, is a startup error — validation
 never silently degrades to off.
 
 ```shell
-VALIDATE_RESPONSES=1 npm start
+VALIDATE_RESPONSES=1 VALIDATE_REQUESTS=1 npm start
 ```
 
-The test suite for the response-validation middleware is a standalone Node
+The test suite for the spec-validation middleware is a standalone Node
 script (it spawns the server on free ports), not a Jest test, so it is not
 picked up by `npm test`. Run it explicitly:
 
 ```shell
 node test/test_response_validation.js
+node test/test_request_helpers.js
 # Override the base port if 4010-4014 are in use:
 TEST_PORT_BASE=5010 node test/test_response_validation.js
 ```
+
+## Inspecting captured requests
+
+`GET /__session__/last-request` returns the most recent request received in
+the session identified by the `mock-server-session` header. The response is a
+JSON object with `method`, `path`, `headers`, `query`, and `body`. Use it from
+tests to assert what the SDK actually sent on the wire — including parameter
+values that the mock does not otherwise reflect back in its response:
+
+```
+result = client.translate_text("proton beam", target_lang="DE", model_type="quality_optimized")
+captured = http_get("http://localhost:3000/__session__/last-request",
+                    headers={"mock-server-session": session_id})
+assert captured["body"]["model_type"] == "quality_optimized"
+```
+
+Returns 400 if `mock-server-session` is missing, 404 if no request has yet
+been captured for that session. The endpoint itself is excluded from capture,
+fault injection (`mock-server-session-5xx-count`) and spec validation.
 
 ## Server configuration via HTTP-request header
 The HTTP-request header **mock-server-session** may be sent with any request, containing a unique string identifying the
@@ -108,6 +140,8 @@ The server removes sessions after 10 minutes of inactivity.
 | mock-server-session                          | Any     | Uniquely identifies this test session.                                                                                                            |
 | mock-server-session-no-response-count        | Integer | Specifies the number of requests that should result in no response before resuming normal behavior.                                               |
 | mock-server-session-429-count                | Integer | Specifies the number of **/translate** requests that should result in a **429 Too Many Requests** response before resuming normal behavior.       |
+| mock-server-session-5xx-count                | Integer | Specifies the number of requests (any endpoint) that should respond with a 5xx status before resuming normal behavior.                            |
+| mock-server-session-5xx-status               | Integer | Status code returned by the 5xx fault injection. Must be in 500–599. Default: 503.                                                                |
 | mock-server-session-doc-failure              | Integer | Specifies the number of documents that should fail during translation before resuming normal behavior.                                            |
 | mock-server-session-init-character-limit     | Integer | Specifies the character limit for user accounts created in this session, specify 0 to remove limit. Default: 20000000.                            |
 | mock-server-session-init-document-limit      | Integer | Specifies the document limit for user accounts created in this session, specify 0 to remove limit. Default: 10000.                                |
@@ -117,6 +151,7 @@ The server removes sessions after 10 minutes of inactivity.
 | mock-server-session-expect-proxy             | Integer | If non-zero, only requests via the proxy server are accepted. Requests are considered to come via proxy if the Forwarded HTTP header is included. |
 | mock-server-session-allow-reconnections      | Integer | If non-zero, disables rejecting requests due to unnecessary reconnections.                                                                        |
 | mock-server-session-allow-missing-user-agent | Integer | If non-zero, disables rejecting requests due to missing User-Agent.                                                                               |
+| mock-server-session-allow-extra-body         | Integer | If non-zero, bypasses opt-in request validation (`VALIDATE_REQUESTS=1`) for this session's requests. Use for tests that deliberately send non-spec-conforming bodies. |
 
 ## Limitations compared with the DeepL API
 ### Limited translation

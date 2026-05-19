@@ -16,6 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   schema mismatches surface as structured errors. Spec source defaults to the
   public DeepL spec on GitHub and can be overridden with `DEEPL_MOCK_SPEC_URL`
   (fetch from URL) or `DEEPL_MOCK_SPEC_PATH` (read from a local file).
+- Add `mock-server-session-5xx-count` session header for simulating transient
+  5xx responses (mirror of `mock-server-session-429-count`). The status code
+  defaults to 503 and can be overridden with `mock-server-session-5xx-status`.
+  Applies to every API endpoint so SDK retry-on-5xx behavior can be exercised
+  on any request the test cares about.
+- Add `GET /__session__/last-request` endpoint returning the most recent
+  request captured for the session (method, path, headers, query, body).
+  Lets tests assert what the SDK actually sent — including param values that
+  the mock does not otherwise reflect in its response — under mock CI.
+- Add opt-in request-shape validation against the DeepL OpenAPI spec. Enable
+  by setting `VALIDATE_REQUESTS=1` (mirror of `VALIDATE_RESPONSES=1`); each
+  request body, query and path parameter is then validated and schema
+  mismatches surface as structured 4xx errors. Tests that deliberately send
+  non-spec-conforming bodies can opt out per-session via the
+  `mock-server-session-allow-extra-body` session header.
 
 ### Fixed
 - Fix parsing of `custom_instructions` parameter during style rule creation to correctly handle array values
@@ -23,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix error message returned when a language does not support styles or tones but one is configured.
 ### Security
 - Updated dependencies to fix GHSA-j3q9-mxjg-w52f and GHSA-27v5-c462-wpq7 (path-to-regexp DoS vulnerability)
+- Updated transitive `fast-uri` to fix GHSA-q3j6-qgpj-74h6 (path traversal via percent-encoded dot segments) and GHSA-v39h-62p7-jpjc (host confusion via percent-encoded authority delimiters)
 - Updated follow-redirects to fix GHSA-r4q5-vmmm-2653 (auth header leak on cross-domain redirects)
 
 ## [1.20.0] - 2026-03-17

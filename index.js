@@ -45,7 +45,12 @@ const translationMemories = require('./translationMemories');
 const { writingStyles, WritingStyle } = require('./writing_styles');
 const { writingTones, WritingTone } = require('./writing_tones');
 const util = require('./util');
-const { installResponseValidator, validationErrorHandler } = require('./response-validator');
+const {
+  installResponseValidator,
+  installRequestValidator,
+  validationErrorHandler,
+  isMockOnlyPath,
+} = require('./response-validator');
 
 // Add X-Trace-ID header to all responses
 app.use((req, res, next) => {
@@ -53,6 +58,50 @@ app.use((req, res, next) => {
   res.setHeader('X-Trace-ID', traceId);
   next();
 });
+
+// Per-session capture of the most recent received request. Reads back from
+// GET /__session__/last-request. The 'finish' hook lets us register here
+// without caring whether body parsers run before or after this middleware —
+// req.body / req.query are populated by the time the response is sent.
+function captureRequest(req, res, next) {
+  if (isMockOnlyPath(req.path)) {
+    return next();
+  }
+  res.on('finish', () => {
+    if (!req.session || typeof req.session !== 'object' || !req.headers['mock-server-session']) {
+      return;
+    }
+    req.session.last_request = {
+      method: req.method,
+      path: req.path,
+      headers: { ...req.headers },
+      query: { ...req.query },
+      body: req.body,
+    };
+  });
+  return next();
+}
+app.use(captureRequest);
+
+// Transient 5xx fault injection for retry-on-5xx test scenarios.
+// Mirrors the existing 429 mechanism but applies to every API endpoint so
+// SDKs can drive their retry logic on any request the test cares about.
+function respondWith5xx(req, res, next) {
+  if (isMockOnlyPath(req.path)) {
+    return next();
+  }
+  if (req.session?.respond_5xx_count > 0) {
+    req.session.respond_5xx_count -= 1;
+    const configured = req.session.respond_5xx_status;
+    const status = Number.isInteger(configured) && configured >= 500 && configured <= 599
+      ? configured
+      : 503;
+    res.status(status).send();
+    return undefined;
+  }
+  return next();
+}
+app.use(respondWith5xx);
 
 const envVarPort = 'DEEPL_MOCK_SERVER_PORT';
 const envVarProxyPort = 'DEEPL_MOCK_PROXY_SERVER_PORT';
@@ -1016,43 +1065,72 @@ async function handleV3LanguageProducts(req, res) {
   }
 }
 
+function handleSessionLastRequest(req, res) {
+  if (!req.headers['mock-server-session']) {
+    res.status(400).json({
+      message: 'mock-server-session header required to identify the session whose last-request to read.',
+    });
+    return;
+  }
+  if (!req.session || !req.session.last_request) {
+    res.status(404).json({
+      message: 'No request has been captured for this session yet.',
+    });
+    return;
+  }
+  res.status(200).json(req.session.last_request);
+}
+
 async function startServer() {
-  // Optionally install response validation (enabled via VALIDATE_RESPONSES=1)
+  // Register all per-path body parsers first so the request validator (and
+  // any spec-validation middleware) sees req.body already parsed regardless
+  // of Content-Type.
+  app.use('/v2/languages', express.json());
+  app.use('/v2/usage', express.json());
+  app.use('/v2/translate', express.json());
+  app.use('/v2/translate_secondary', express.json());
+  app.use('/v2/write/rephrase', express.json());
+  app.use('/v2/document/:document_id', express.json());
+  app.use('/v2/document/:document_id/result', express.json());
+  // Maximum glossary size is 10MiB, but there is some extra request overhead
+  app.use('/v2/glossaries', express.json({ limit: '11mb' }));
+  app.use('/v3/glossaries', express.json({ limit: '11mb' }));
+  app.use('/v3/translation_memories', express.json());
+  app.use('/v3/style_rules', express.json());
+  app.use('/v3/languages', express.json());
+
+  // Optionally install spec validation against the OpenAPI spec.
+  //   VALIDATE_RESPONSES=1 — validates response bodies
+  //   VALIDATE_REQUESTS=1  — validates request bodies/queries/path params
+  // Order matters: request validator runs first so its 4xx fires before the
+  // route handler; response validator wraps res for output checking.
+  await installRequestValidator(app);
   await installResponseValidator(app);
 
-  app.use('/v2/languages', express.json());
   app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
   app.post('/v2/languages', auth, requireUserAgent, handleLanguages);
 
-  app.use('/v2/usage', express.json());
   app.get('/v2/usage', auth, requireUserAgent, handleUsage);
   app.post('/v2/usage', auth, requireUserAgent, handleUsage);
 
-  app.use('/v2/translate', express.json());
   app.get('/v2/translate', auth, requireUserAgent, handleTranslate);
   app.post('/v2/translate', auth, requireUserAgent, handleTranslate);
 
   // (internal only) Note that this is not a real endpoint on the DeepL API. It is only included
   // to support testing path overrides in the client libraries.
-  app.use('/v2/translate_secondary', express.json());
   app.post('/v2/translate_secondary', auth, requireUserAgent, handleTranslate);
 
-  app.use('/v2/write/rephrase', express.json());
   app.get('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);
   app.post('/v2/write/rephrase', auth, requireUserAgent, handleRephrase);
 
   app.post('/v2/document', auth, requireUserAgent, handleDocument);
 
-  app.use('/v2/document/:document_id', express.json());
   app.get('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
   app.post('/v2/document/:document_id', auth, requireUserAgent, handleDocumentStatus);
 
-  app.use('/v2/document/:document_id/result', express.json());
   app.get('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
   app.post('/v2/document/:document_id/result', auth, requireUserAgent, handleDocumentDownload);
 
-  // Maximum glossary size is 10MiB, but there is some extra request overhead
-  app.use('/v2/glossaries', express.json({ limit: '11mb' }));
   app.get('/v2/glossary-language-pairs', auth, requireUserAgent, handleGlossaryLanguages);
   app.post('/v2/glossaries', auth, requireUserAgent, handleV2GlossaryCreate.bind(null));
   app.get('/v2/glossaries', auth, requireUserAgent, handleV2GlossaryList.bind(null));
@@ -1060,8 +1138,6 @@ async function startServer() {
   app.get('/v2/glossaries/:glossary_id/entries', auth, requireUserAgent, handleV2GlossaryEntries.bind(null));
   app.delete('/v2/glossaries/:glossary_id', auth, requireUserAgent, handleV2GlossaryDelete.bind(null));
 
-  // Maximum glossary size is 10MiB, but there is some extra request overhead
-  app.use('/v3/glossaries', express.json({ limit: '11mb' }));
   app.post('/v3/glossaries', auth, requireUserAgent, handleV3GlossaryCreate.bind(null));
   app.get('/v3/glossaries', auth, requireUserAgent, handleV3GlossaryList.bind(null));
   app.get('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleV3GlossaryList.bind(null));
@@ -1071,10 +1147,8 @@ async function startServer() {
   app.patch('/v3/glossaries/:glossary_id', auth, requireUserAgent, handleGlossaryPatch);
   app.put('/v3/glossaries/:glossary_id/dictionaries', auth, requireUserAgent, handleDictionaryPut);
 
-  app.use('/v3/translation_memories', express.json());
   app.get('/v3/translation_memories', auth, requireUserAgent, handleTranslationMemoryList.bind(null));
 
-  app.use('/v3/style_rules', express.json());
   app.get('/v3/style_rules', auth, requireUserAgent, handleStyleRuleList.bind(null));
   app.post('/v3/style_rules', auth, requireUserAgent, handleStyleRuleCreate.bind(null));
   app.get('/v3/style_rules/:style_id', auth, requireUserAgent, handleStyleRuleGet.bind(null));
@@ -1086,10 +1160,12 @@ async function startServer() {
   app.put('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionUpdate.bind(null));
   app.delete('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionDelete.bind(null));
 
-  app.use('/v3/languages', express.json());
   // More-specific sub-paths must be registered before the base /v3/languages route
   app.get('/v3/languages/products', auth, requireUserAgent, handleV3LanguageProducts);
   app.get('/v3/languages', auth, requireUserAgent, handleV3Languages);
+
+  // Mock-internal session helper endpoints. No auth: these inspect mock state.
+  app.get('/__session__/last-request', handleSessionLastRequest);
 
   app.get('/healthz', handleHealthz);
 
@@ -1097,7 +1173,7 @@ async function startServer() {
     res.status(404).send();
   });
 
-  // Error handler for response validation failures
+  // Error handler for spec validation failures (request and response)
   app.use(validationErrorHandler);
 
   const server = app.listen(port, () => {

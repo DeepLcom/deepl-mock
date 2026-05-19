@@ -15,6 +15,8 @@ function createSession(headers, socket) {
   const vars = {
     no_response_count: 'mock-server-session-no-response-count',
     respond_429_count: 'mock-server-session-429-count',
+    respond_5xx_count: 'mock-server-session-5xx-count',
+    respond_5xx_status: 'mock-server-session-5xx-status',
     doc_failure: 'mock-server-session-doc-failure',
     init_char_limit: 'mock-server-session-init-character-limit',
     init_doc_limit: 'mock-server-session-init-document-limit',
@@ -24,6 +26,7 @@ function createSession(headers, socket) {
     expect_proxy: 'mock-server-session-expect-proxy',
     allow_missing_user_agent: 'mock-server-session-allow-missing-user-agent',
     allow_reconnections: 'mock-server-session-allow-reconnections',
+    allow_extra_body: 'mock-server-session-allow-extra-body',
   };
 
   // eslint-disable-next-line guard-for-in,no-restricted-syntax

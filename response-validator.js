@@ -4,23 +4,38 @@
 
 const DEFAULT_SPEC_URL = 'https://raw.githubusercontent.com/DeepLcom/openapi/main/openapi.yaml';
 
-// Routes that should bypass response validation. Each pattern is matched
+// Routes that should bypass spec validation. Each pattern is matched
 // against req.path with RegExp#test. Each entry is here for one of three
 // reasons:
 //   - mock-only / not part of the real DeepL API
 //   - response shape conflicts with the validator (multipart upload, binary
 //     download stream)
 //   - served by PROD but not yet in the spec
-const IGNORED_PATHS = [
+const VALIDATION_IGNORED_PATHS = [
   /^\/v2\/translate_secondary$/, // mock-only test-helper route
   /^\/v2\/document$/, // multipart upload — incompatible with the validator
   // Binary download streamed via res.download(); the validator would try to
   // parse the Buffer body against the JSON schema and false-positive.
   /^\/v2\/document\/[^/]+\/result$/,
   /^\/healthz$/, // mock-only liveness endpoint
+  /^\/__session__\//, // mock-only test helpers (e.g. last-request)
   /^\/v3\/languages$/, // served by PROD, not in spec
   /^\/v3\/languages\/products$/, // served by PROD, not in spec
 ];
+
+// Truly mock-internal paths that should also bypass request capture and 5xx
+// fault injection — narrower than VALIDATION_IGNORED_PATHS, which includes
+// real DeepL API paths excluded from spec validation for unrelated reasons
+// (binary bodies, not-yet-in-spec). SDK tests must be able to drive 5xx
+// retries and capture on those real endpoints.
+const MOCK_ONLY_PATHS = [
+  /^\/healthz$/,
+  /^\/__session__\//,
+];
+
+function isMockOnlyPath(p) {
+  return MOCK_ONLY_PATHS.some((re) => re.test(p));
+}
 
 async function loadSpecText() {
   const { DEEPL_MOCK_SPEC_URL: specUrl, DEEPL_MOCK_SPEC_PATH: specPath } = process.env;
@@ -50,7 +65,28 @@ async function loadSpecText() {
   } catch (err) {
     throw new Error(
       `Failed to fetch OpenAPI spec from ${url}: ${err.message}`
-        + '. VALIDATE_RESPONSES=1 requires the spec to be reachable.',
+        + '. Spec validation requires the spec to be reachable.',
+    );
+  }
+}
+
+async function loadAndParseSpec() {
+  const yaml = require('js-yaml'); // eslint-disable-line global-require
+  const specText = await loadSpecText();
+  try {
+    // js-yaml v4's default schema is already safe (no !!js/function etc.),
+    // but pass JSON_SCHEMA explicitly so static analysers don't flag the
+    // load as unsafe deserialisation. JSON_SCHEMA is the most restrictive
+    // standard schema — strings/numbers/bools/nulls/sequences/mappings —
+    // which is all an OpenAPI spec contains.
+    return yaml.load(specText, { schema: yaml.JSON_SCHEMA });
+  } catch (err) {
+    // Catches the case where the spec source returned HTTP 200 but with
+    // non-YAML content (e.g. an HTML redirect/error page). yaml.load's
+    // YAMLException alone makes this hard to diagnose.
+    throw new Error(
+      `Failed to parse OpenAPI spec as YAML: ${err.message}`
+        + '. Check that DEEPL_MOCK_SPEC_URL/DEEPL_MOCK_SPEC_PATH points at a YAML document.',
     );
   }
 }
@@ -76,23 +112,10 @@ async function installResponseValidator(app) {
   }
 
   // Lazy: only load when validation is enabled, keeps deps out of default startup.
-  const yaml = require('js-yaml'); // eslint-disable-line global-require
   const OpenApiValidator = require('express-openapi-validator'); // eslint-disable-line global-require
 
   console.log('Loading OpenAPI spec for response validation...');
-  const specText = await loadSpecText();
-  let apiSpec;
-  try {
-    apiSpec = yaml.load(specText);
-  } catch (err) {
-    // Catches the case where the spec source returned HTTP 200 but with
-    // non-YAML content (e.g. an HTML redirect/error page). yaml.load's
-    // YAMLException alone makes this hard to diagnose.
-    throw new Error(
-      `Failed to parse OpenAPI spec as YAML: ${err.message}`
-        + '. Check that DEEPL_MOCK_SPEC_URL/DEEPL_MOCK_SPEC_PATH points at a YAML document.',
-    );
-  }
+  const apiSpec = await loadAndParseSpec();
 
   app.use(
     OpenApiValidator.middleware({
@@ -100,7 +123,7 @@ async function installResponseValidator(app) {
       validateApiSpec: false,
       validateRequests: false,
       validateResponses: true,
-      ignorePaths: (p) => IGNORED_PATHS.some((re) => re.test(p)),
+      ignorePaths: (p) => VALIDATION_IGNORED_PATHS.some((re) => re.test(p)),
     }),
   );
 
@@ -108,8 +131,56 @@ async function installResponseValidator(app) {
 }
 
 /**
- * Express error handler that surfaces response-validation failures as
- * structured JSON including the specific field and schema that failed.
+ * Installs express-openapi-validator request-validation middleware on the
+ * given Express app when VALIDATE_REQUESTS=1. Mirrors installResponseValidator
+ * but on the request side: each incoming request's body, query and path params
+ * are validated against the spec for the matched operation. Failures surface
+ * as 4xx with the spec-validation error structured in the body via
+ * validationErrorHandler.
+ *
+ * Per-test escape hatch: requests in a session created with
+ * mock-server-session-allow-extra-body=1 bypass the validator. Intended for
+ * tests that deliberately send non-spec-conforming bodies (e.g. the
+ * extra_body_parameters fixtures across client libraries).
+ */
+async function installRequestValidator(app) {
+  if (process.env.VALIDATE_REQUESTS !== '1') {
+    return;
+  }
+
+  const OpenApiValidator = require('express-openapi-validator'); // eslint-disable-line global-require
+
+  console.log('Loading OpenAPI spec for request validation...');
+  const apiSpec = await loadAndParseSpec();
+
+  const validators = OpenApiValidator.middleware({
+    apiSpec,
+    validateApiSpec: false,
+    validateRequests: true,
+    validateResponses: false,
+    ignorePaths: (p) => VALIDATION_IGNORED_PATHS.some((re) => re.test(p)),
+  });
+
+  // Wrap each validator middleware so a session with allow_extra_body set
+  // bypasses request validation entirely for that session's requests. The
+  // wrap is per-middleware (rather than around the whole chain) so each
+  // entry in the array still gets a chance to set up its own state.
+  validators.forEach((v) => {
+    app.use((req, res, next) => {
+      if (req.session?.allow_extra_body) {
+        return next();
+      }
+      return v(req, res, next);
+    });
+  });
+
+  console.log('Request validation enabled against OpenAPI spec.');
+}
+
+/**
+ * Express error handler that surfaces spec-validation failures (both request
+ * and response) as structured JSON including the specific field and schema
+ * that failed.
  */
 function validationErrorHandler(err, req, res, next) {
   if (res.headersSent) {
@@ -118,7 +189,7 @@ function validationErrorHandler(err, req, res, next) {
   }
   if (err.status && err.errors) {
     console.error(
-      `Response validation error on ${req.method} ${req.path}:`,
+      `Spec validation error on ${req.method} ${req.path}:`,
       JSON.stringify(err.errors, null, 2),
     );
     res.status(err.status).json({
@@ -130,4 +201,9 @@ function validationErrorHandler(err, req, res, next) {
   }
 }
 
-module.exports = { installResponseValidator, validationErrorHandler };
+module.exports = {
+  installResponseValidator,
+  installRequestValidator,
+  validationErrorHandler,
+  isMockOnlyPath,
+};
