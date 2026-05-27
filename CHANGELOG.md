@@ -33,10 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mock-server-session-allow-extra-body` session header.
 
 ### Fixed
+- Enable ajv `coerceTypes: true` in the `VALIDATE_REQUESTS=1` request-validator
+  config so URL query / path / form-urlencoded values pass validation when
+  they cleanly coerce to the spec-declared type. Without this, every
+  wire-format-forced string failed `type: integer` / `type: boolean` /
+  `type: array` even though prod accepts the same payloads. See AE-629.
 - Fix parsing of `custom_instructions` parameter during style rule creation to correctly handle array values
 - Fix list of languages that support write, styles and tones
 - Fix error message returned when a language does not support styles or tones but one is configured.
 ### Security
+- Bumped `qs` to `~6.15.2` to fix GHSA-q8mj-m7cp-5q26 (`qs.stringify` DoS via TypeError on null/undefined entries in comma-format arrays). Unblocks the `npm audit --production` gate on every MR pipeline.
 - Updated dependencies to fix GHSA-j3q9-mxjg-w52f and GHSA-27v5-c462-wpq7 (path-to-regexp DoS vulnerability)
 - Updated transitive `fast-uri` to fix GHSA-q3j6-qgpj-74h6 (path traversal via percent-encoded dot segments) and GHSA-v39h-62p7-jpjc (host confusion via percent-encoded authority delimiters)
 - Updated follow-redirects to fix GHSA-r4q5-vmmm-2653 (auth header leak on cross-domain redirects)

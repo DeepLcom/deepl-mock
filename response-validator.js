@@ -156,7 +156,12 @@ async function installRequestValidator(app) {
   const validators = OpenApiValidator.middleware({
     apiSpec,
     validateApiSpec: false,
-    validateRequests: true,
+    // coerceTypes: true so URL-query / path / form-urlencoded values pass
+    // validation against typed schemas (prod accepts these; we should too).
+    validateRequests: {
+      allowUnknownQueryParameters: false,
+      coerceTypes: true,
+    },
     validateResponses: false,
     ignorePaths: (p) => VALIDATION_IGNORED_PATHS.some((re) => re.test(p)),
   });

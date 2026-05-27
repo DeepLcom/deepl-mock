@@ -746,6 +746,58 @@ async function testCaptureMultipartUpload() {
 }
 
 // ---------------------------------------------------------------------------
+// Test 13: VALIDATE_REQUESTS=1 with coerceTypes accepts URL-query strings
+//          for typed primitive schemas (regression for AE-629).
+// ---------------------------------------------------------------------------
+async function testValidateRequestsCoercesQueryParams() {
+  const fs = require('fs'); // eslint-disable-line global-require
+  const port = PORT_BASE + 13;
+  const specFile = path.resolve(__dirname, 'tmp_request_validation_coerce_spec.json');
+
+  const spec = {
+    openapi: '3.0.0',
+    info: { title: 'Test spec', version: '1.0.0' },
+    paths: {
+      '/v2/usage': {
+        get: {
+          operationId: 'usage',
+          parameters: [
+            { name: 'page', in: 'query', schema: { type: 'integer' } },
+            { name: 'detailed', in: 'query', schema: { type: 'boolean' } },
+          ],
+          responses: { 200: { description: 'ok' } },
+        },
+      },
+    },
+  };
+  fs.writeFileSync(specFile, JSON.stringify(spec));
+
+  const proc = startServer(port, {
+    VALIDATE_REQUESTS: '1',
+    DEEPL_MOCK_SPEC_PATH: specFile,
+  });
+  try {
+    await waitForServer(proc);
+
+    const r = await request(port, {
+      method: 'GET',
+      path: '/v2/usage?page=0&detailed=true',
+      headers: { 'mock-server-session': 'helpers-validate-coerce' },
+    });
+    assert.strictEqual(
+      r.status,
+      200,
+      `expected 200 after coercion, got ${r.status} body=${JSON.stringify(r.body)}`,
+    );
+
+    console.log('PASS: VALIDATE_REQUESTS=1 coerces wire-format strings to typed query params');
+  } finally {
+    proc.kill();
+    fs.unlinkSync(specFile);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Run all tests
 // ---------------------------------------------------------------------------
 async function main() {
@@ -763,6 +815,7 @@ async function main() {
     ['allow-extra-body bypasses only request validation', testAllowExtraBodyDoesNotBypassResponseValidation],
     ['invalid 5xx-status falls back to 503', test5xxStatusInvalidFallsBackTo503],
     ['capture handles multipart upload', testCaptureMultipartUpload],
+    ['VALIDATE_REQUESTS coerces wire-format query params', testValidateRequestsCoercesQueryParams],
   ];
 
   let passed = 0;
