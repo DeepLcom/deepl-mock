@@ -33,6 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mock-server-session-allow-extra-body` session header.
 
 ### Fixed
+- Fix `GET /v3/style_rules` and `GET /v3/translation_memories` handlers to
+  accept the coerced number/boolean query-parameter values that
+  `VALIDATE_REQUESTS=1` produces. The `allowedValues` arrays previously
+  hard-coded strings only, so coerced typed values failed the strict
+  `includes()` check.
+- Fix the default translation memory to return lowercase language codes
+  (`source_language`, `target_languages`), matching the OpenAPI spec's
+  `TranslationMemorySourceLanguage` and `TranslationMemoryTargetLanguage`
+  enums. Without this, `VALIDATE_RESPONSES=1` rejected every
+  `/v3/translation_memories` response with a strict enum-validation error.
 - Enable ajv `coerceTypes: true` in the `VALIDATE_REQUESTS=1` request-validator
   config so URL query / path / form-urlencoded values pass validation when
   they cleanly coerce to the spec-declared type. Without this, every

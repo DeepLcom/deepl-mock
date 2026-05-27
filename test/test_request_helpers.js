@@ -798,6 +798,148 @@ async function testValidateRequestsCoercesQueryParams() {
 }
 
 // ---------------------------------------------------------------------------
+// Test 14: With VALIDATE_REQUESTS=1 + coerceTypes, the live /v3/style_rules
+//          and /v3/translation_memories handlers must tolerate the typed
+//          values the validator hands them. Catches the class of bug where
+//          a handler's `allowedValues` array hard-codes only strings.
+// ---------------------------------------------------------------------------
+async function testHandlersTolerateCoercedQueryTypes() {
+  const fs = require('fs'); // eslint-disable-line global-require
+  const port = PORT_BASE + 14;
+  const specFile = path.resolve(__dirname, 'tmp_request_validation_handler_spec.json');
+
+  const spec = {
+    openapi: '3.0.0',
+    info: { title: 'Test spec', version: '1.0.0' },
+    paths: {
+      '/v3/style_rules': {
+        get: {
+          operationId: 'listStyleRules',
+          parameters: [
+            { name: 'page', in: 'query', schema: { type: 'integer' } },
+            { name: 'page_size', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 25 } },
+            { name: 'detailed', in: 'query', schema: { type: 'boolean' } },
+          ],
+          responses: { 200: { description: 'ok' } },
+        },
+      },
+      '/v3/translation_memories': {
+        get: {
+          operationId: 'listTranslationMemories',
+          parameters: [
+            { name: 'page', in: 'query', schema: { type: 'integer' } },
+            { name: 'page_size', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 25 } },
+          ],
+          responses: { 200: { description: 'ok' } },
+        },
+      },
+    },
+  };
+  fs.writeFileSync(specFile, JSON.stringify(spec));
+
+  const proc = startServer(port, {
+    VALIDATE_REQUESTS: '1',
+    DEEPL_MOCK_SPEC_PATH: specFile,
+  });
+  try {
+    await waitForServer(proc);
+
+    const r1 = await request(port, {
+      method: 'GET',
+      path: '/v3/style_rules?page=0&page_size=10&detailed=true',
+      headers: { 'mock-server-session': 'helpers-coerce-handler-1' },
+    });
+    assert.strictEqual(r1.status, 200, `style_rules: expected 200, got ${r1.status}`);
+    assert.ok(r1.body.style_rules, 'style_rules response should include style_rules array');
+
+    const r2 = await request(port, {
+      method: 'GET',
+      path: '/v3/translation_memories?page=0&page_size=10',
+      headers: { 'mock-server-session': 'helpers-coerce-handler-2' },
+    });
+    assert.strictEqual(r2.status, 200, `translation_memories: expected 200, got ${r2.status}`);
+    assert.ok(r2.body.translation_memories, 'translation_memories response should include translation_memories array');
+
+    // Defaults path (no query params) should also succeed.
+    const r3 = await request(port, {
+      method: 'GET',
+      path: '/v3/style_rules',
+      headers: { 'mock-server-session': 'helpers-coerce-handler-3' },
+    });
+    assert.strictEqual(r3.status, 200, `style_rules (defaults): expected 200, got ${r3.status}`);
+
+    // Boundary: page_size at the max allowed value (25) — exercises the
+    // top of the allowedValues array. Pre-fix, the handler held
+    // ['1'..'25'] (strings) and includes(25) (coerced number) would fail.
+    const r4 = await request(port, {
+      method: 'GET',
+      path: '/v3/style_rules?page=0&page_size=25',
+      headers: { 'mock-server-session': 'helpers-coerce-handler-4' },
+    });
+    assert.strictEqual(r4.status, 200, `style_rules page_size=25 (boundary): expected 200, got ${r4.status}`);
+
+    // Out-of-range: page_size=26 must STILL be rejected (validator's
+    // schema maximum is 25). Confirms we didn't accidentally make the
+    // handler accept-anything.
+    const r5 = await request(port, {
+      method: 'GET',
+      path: '/v3/style_rules?page=0&page_size=26',
+      headers: { 'mock-server-session': 'helpers-coerce-handler-5' },
+    });
+    assert.ok(
+      r5.status >= 400 && r5.status < 500,
+      `style_rules page_size=26 (out of range): expected 4xx, got ${r5.status}`,
+    );
+
+    console.log('PASS: /v3 list handlers tolerate coerced number/boolean query params');
+  } finally {
+    proc.kill();
+    fs.unlinkSync(specFile);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Test 15: The default translation memory must surface lowercase language
+//          codes in its GET /v3/translation_memories response — the spec's
+//          TranslationMemorySourceLanguage / TranslationMemoryTargetLanguage
+//          enums are lowercase-only, so VALIDATE_RESPONSES=1 would 500 on
+//          any response with uppercase. Guard against regression.
+// ---------------------------------------------------------------------------
+async function testDefaultTranslationMemoryLowercaseLangs() {
+  const port = PORT_BASE + 15;
+  const proc = startServer(port);
+  try {
+    await waitForServer(proc);
+
+    const r = await request(port, {
+      method: 'GET',
+      path: '/v3/translation_memories',
+      headers: { 'mock-server-session': 'helpers-default-tm-lowercase' },
+    });
+    assert.strictEqual(r.status, 200, `expected 200, got ${r.status}`);
+    assert.ok(Array.isArray(r.body.translation_memories) && r.body.translation_memories.length > 0,
+      'expected at least one default TM');
+    const tm = r.body.translation_memories[0];
+    assert.strictEqual(
+      tm.source_language,
+      tm.source_language.toLowerCase(),
+      `source_language must be lowercase, got "${tm.source_language}"`,
+    );
+    tm.target_languages.forEach((tgt) => {
+      assert.strictEqual(
+        tgt,
+        tgt.toLowerCase(),
+        `target_languages entries must be lowercase, got "${tgt}"`,
+      );
+    });
+
+    console.log('PASS: default translation memory returns lowercase language codes');
+  } finally {
+    proc.kill();
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Run all tests
 // ---------------------------------------------------------------------------
 async function main() {
@@ -816,6 +958,8 @@ async function main() {
     ['invalid 5xx-status falls back to 503', test5xxStatusInvalidFallsBackTo503],
     ['capture handles multipart upload', testCaptureMultipartUpload],
     ['VALIDATE_REQUESTS coerces wire-format query params', testValidateRequestsCoercesQueryParams],
+    ['/v3 list handlers tolerate coerced query types', testHandlersTolerateCoercedQueryTypes],
+    ['default TM response uses lowercase language codes', testDefaultTranslationMemoryLowercaseLangs],
   ];
 
   let passed = 0;

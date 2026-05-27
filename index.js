@@ -803,14 +803,19 @@ async function handleDictionaryPut(req, res) {
 async function handleStyleRuleList(req, res) {
   try {
     const { authKey } = req.user_account;
-    const pageSizeAllowedValues = Array.from({ length: 25 }, (_, i) => String(i + 1));
+    // Handler must work in both modes: without VALIDATE_REQUESTS=1 query params
+    // stay strings; with it, coerceTypes turns them into typed primitives. Dual
+    // arrays accept either — same pattern as /v2/translate boolean-ish params
+    // at lines 384/388/389.
+    const pageSizeAllowedValues = Array.from({ length: 25 }, (_, i) => i + 1)
+      .flatMap((n) => [n, String(n)]);
 
     const pageStr = getParam(req, 'page', { default: '0' });
     const pageSizeStr = getParam(req, 'page_size', { default: '10', allowedValues: pageSizeAllowedValues });
-    const detailedStr = getParam(req, 'detailed', { default: 'false', allowedValues: ['true', 'false'] });
+    const detailedStr = getParam(req, 'detailed', { default: 'false', allowedValues: ['true', 'false', true, false] });
     const page = Number.parseInt(pageStr, 10);
     const pageSize = Number.parseInt(pageSizeStr, 10);
-    const detailed = detailedStr === 'true';
+    const detailed = detailedStr === true || detailedStr === 'true';
 
     // Validate page is non-negative
     if (Number.isNaN(page) || page < 0) {
@@ -1020,7 +1025,10 @@ async function handleCustomInstructionDelete(req, res) {
 async function handleTranslationMemoryList(req, res) {
   try {
     const { authKey } = req.user_account;
-    const pageSizeAllowedValues = Array.from({ length: 25 }, (_, i) => String(i + 1));
+    // See handleStyleRuleList — dual-form accepts both string (no validator)
+    // and coerced integer (VALIDATE_REQUESTS=1).
+    const pageSizeAllowedValues = Array.from({ length: 25 }, (_, i) => i + 1)
+      .flatMap((n) => [n, String(n)]);
 
     const pageStr = getParam(req, 'page', { default: '0' });
     const pageSizeStr = getParam(req, 'page_size', { default: '10', allowedValues: pageSizeAllowedValues });

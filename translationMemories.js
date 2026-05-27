@@ -14,8 +14,8 @@ function getDefaultTranslationMemory() {
   return {
     translationMemoryId: DEFAULT_TM_ID,
     name: 'Default Translation Memory',
-    sourceLanguage: 'DE',
-    targetLanguages: ['EN', 'ES', 'FR'],
+    sourceLanguage: 'de',
+    targetLanguages: ['en', 'es', 'fr'],
     segmentCount: 3542,
     used: new Date(),
     authKey: null, // Available to all users
