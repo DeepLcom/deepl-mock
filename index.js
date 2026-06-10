@@ -50,6 +50,7 @@ const {
   installRequestValidator,
   validationErrorHandler,
   isMockOnlyPath,
+  logValidationState,
 } = require('./response-validator');
 
 // Add X-Trace-ID header to all responses
@@ -1114,6 +1115,11 @@ async function startServer() {
   // route handler; response validator wraps res for output checking.
   await installRequestValidator(app);
   await installResponseValidator(app);
+
+  // Emit one grep-able banner of the validation state (ENABLED/DISABLED,
+  // requests/responses, spec source + version). Logged after the installs so
+  // an ENABLED banner also certifies the spec loaded successfully.
+  logValidationState();
 
   app.get('/v2/languages', auth, requireUserAgent, handleLanguages);
   app.post('/v2/languages', auth, requireUserAgent, handleLanguages);

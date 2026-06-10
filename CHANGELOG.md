@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   schema mismatches surface as structured errors. Spec source defaults to the
   public DeepL spec on GitHub and can be overridden with `DEEPL_MOCK_SPEC_URL`
   (fetch from URL) or `DEEPL_MOCK_SPEC_PATH` (read from a local file).
+- Log a startup banner stating whether OpenAPI spec validation is active
+  (`VALIDATE_REQUESTS` / `VALIDATE_RESPONSES`), which spec source it loaded
+  from, and the spec version, so it is unambiguous from the logs that
+  validation is actually running.
 - Add `mock-server-session-5xx-count` session header for simulating transient
   5xx responses (mirror of `mock-server-session-429-count`). The status code
   defaults to 503 and can be overridden with `mock-server-session-5xx-status`.

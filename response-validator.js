@@ -4,6 +4,10 @@
 
 const DEFAULT_SPEC_URL = 'https://raw.githubusercontent.com/DeepLcom/openapi/main/openapi.yaml';
 
+// Captured from the parsed spec during validator install, surfaced in the
+// startup banner so logs show which spec version validation ran against.
+let loadedSpecVersion;
+
 // Routes that should bypass spec validation. Each pattern is matched
 // against req.path with RegExp#test. Each entry is here for one of three
 // reasons:
@@ -79,7 +83,9 @@ async function loadAndParseSpec() {
     // load as unsafe deserialisation. JSON_SCHEMA is the most restrictive
     // standard schema — strings/numbers/bools/nulls/sequences/mappings —
     // which is all an OpenAPI spec contains.
-    return yaml.load(specText, { schema: yaml.JSON_SCHEMA });
+    const parsedSpec = yaml.load(specText, { schema: yaml.JSON_SCHEMA });
+    loadedSpecVersion = parsedSpec?.info?.version;
+    return parsedSpec;
   } catch (err) {
     // Catches the case where the spec source returned HTTP 200 but with
     // non-YAML content (e.g. an HTML redirect/error page). yaml.load's
@@ -206,9 +212,43 @@ function validationErrorHandler(err, req, res, next) {
   }
 }
 
+/**
+ * Returns a human-readable label for where the OpenAPI spec is loaded from,
+ * for the startup banner.
+ */
+function specSource() {
+  const { DEEPL_MOCK_SPEC_URL: specUrl, DEEPL_MOCK_SPEC_PATH: specPath } = process.env;
+  if (specPath) return `file ${specPath}`;
+  if (specUrl) return `url ${specUrl}`;
+  return `url ${DEFAULT_SPEC_URL} (default)`;
+}
+
+/**
+ * Logs a single, grep-able banner stating whether OpenAPI spec validation is
+ * active and against which spec. Call once at startup AFTER the validators are
+ * installed, so an "ENABLED" banner also certifies the spec loaded.
+ */
+function logValidationState() {
+  const requests = process.env.VALIDATE_REQUESTS === '1';
+  const responses = process.env.VALIDATE_RESPONSES === '1';
+  if (!requests && !responses) {
+    console.log(
+      'deepl-mock: OpenAPI spec validation DISABLED '
+        + '(set VALIDATE_REQUESTS=1 and/or VALIDATE_RESPONSES=1 to enable).',
+    );
+    return;
+  }
+  const versionSuffix = loadedSpecVersion ? ` version ${loadedSpecVersion}` : '';
+  console.log(
+    `deepl-mock: OpenAPI spec validation ENABLED (requests=${requests ? 'on' : 'off'}, `
+      + `responses=${responses ? 'on' : 'off'}) using spec ${specSource()}${versionSuffix}.`,
+  );
+}
+
 module.exports = {
   installResponseValidator,
   installRequestValidator,
   validationErrorHandler,
   isMockOnlyPath,
+  logValidationState,
 };
