@@ -200,8 +200,8 @@ function getDictionaryEntries(glossaryId, sourceLang, targetLang, authKey) {
     throw new util.HttpError('Dictionary not found', 404);
   }
   const dictEntries = {
-    source_lang: sourceLang,
-    target_lang: targetLang,
+    source_lang: sourceLang.toLowerCase(),
+    target_lang: targetLang.toLowerCase(),
     entries_format: GLOSSARY_ENTRIES_FORMATS.TSV,
     entries: convertListToGlossaryDictionaryTsv(dictionary.entryList),
   };
