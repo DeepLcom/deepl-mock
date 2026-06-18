@@ -23,8 +23,6 @@ const VALIDATION_IGNORED_PATHS = [
   /^\/v2\/document\/[^/]+\/result$/,
   /^\/healthz$/, // mock-only liveness endpoint
   /^\/__session__\//, // mock-only test helpers (e.g. last-request)
-  /^\/v3\/languages$/, // served by PROD, not in spec
-  /^\/v3\/languages\/products$/, // served by PROD, not in spec
 ];
 
 // Truly mock-internal paths that should also bypass request capture and 5xx

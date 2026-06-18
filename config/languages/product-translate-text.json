@@ -32,15 +32,21 @@
       "Languages": ["de", "es", "es-419", "fr", "it", "ja", "nl", "pl", "pt", "pt-BR", "pt-PT", "ru"]
     },
     {
-      "Name": "custom_instructions",
-      "RequiredOnTarget": true,
-      "Languages": ["de", "en", "en-GB", "en-US", "es", "fr", "it", "ja", "ko", "zh", "zh-Hans", "zh-Hant"]
-    },
-    {
       "Name": "glossary",
       "RequiredOnSource": true,
       "RequiredOnTarget": true,
       "Languages": ["ar", "bg", "cs", "da", "de", "el", "en", "en-GB", "en-US", "es", "es-419", "et", "fi", "fr", "he", "hu", "id", "it", "ja", "ko", "lt", "lv", "nb", "nl", "pl", "pt", "pt-BR", "pt-PT", "ro", "ru", "sk", "sl", "sv", "tr", "uk", "vi", "zh", "zh-Hans", "zh-Hant"]
+    },
+    {
+      "Name": "style_rules",
+      "RequiredOnTarget": true,
+      "Languages": ["de", "de-DE", "en", "en-GB", "en-US", "es", "es-419", "fr", "fr-FR", "it", "ja", "ko", "zh", "zh-Hans", "zh-Hant"]
+    },
+    {
+      "Name": "translation_memory",
+      "RequiredOnSource": true,
+      "RequiredOnTarget": true,
+      "Languages": ["de", "de-DE", "en", "en-GB", "en-US", "es", "es-419", "fr", "fr-FR", "it", "ja", "ko", "zh", "zh-Hans"]
     }
   ]
 }

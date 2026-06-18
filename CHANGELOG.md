@@ -6,8 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Add `GET /v3/languages` endpoint returning language/feature support per product
-- Add `GET /v3/languages/products` endpoint listing products and their features
+- Add `GET /v3/languages?resource=<resource>` endpoint returning the languages
+  supported by a resource. Each language carries `lang`, `name`, `status`,
+  `usable_as_source`, `usable_as_target`, and a `features` object keyed by
+  feature name (matching the live API shape). Supported resources:
+  `translate_text`, `translate_document`, `glossary`, `voice`, `write`,
+  `style_rules`.
+- Add `GET /v3/languages/resources` endpoint listing each resource and the
+  features it supports, with `needs_source_support` / `needs_target_support`
+  flags per feature.
 - Add `GET /v3/translation_memories` endpoint for listing translation memories
 - Add support for `translation_memory_id` and `translation_memory_threshold`
   parameters in `/v2/translate`

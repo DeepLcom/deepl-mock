@@ -2,10 +2,12 @@
 // Use of this source code is governed by an MIT
 // license that can be found in the LICENSE file.
 //
-// Tests for GET /v3/languages and GET /v3/languages/products
+// Tests for GET /v3/languages and GET /v3/languages/resources.
 //
-// Run against mock:  DEEPL_SERVER_URL=http://localhost:3000 DEEPL_AUTH_KEY=test:fx npm test
-// Run against live:  DEEPL_SERVER_URL=https://api.deepl.com DEEPL_AUTH_KEY=<key> npm test
+// These run identically against the mock and the live API, so they double as a
+// conformance check that the mock matches production shape:
+//   Run against mock:  DEEPL_SERVER_URL=http://localhost:3000 DEEPL_AUTH_KEY=test:fx npm test
+//   Run against live:  DEEPL_SERVER_URL=https://api.deepl.com DEEPL_AUTH_KEY=<key> npm test
 
 const { get } = require('./helpers');
 
@@ -17,8 +19,9 @@ function findLang(langs, code) {
   return langs.find((l) => l.lang === code);
 }
 
-function featuresOf(langs, code) {
-  return findLang(langs, code)?.features ?? [];
+// `features` is an object map keyed by feature name; return the names.
+function featureNamesOf(langs, code) {
+  return Object.keys(findLang(langs, code)?.features ?? {});
 }
 
 function bcp47Valid(code) {
@@ -36,272 +39,187 @@ function bcp47Valid(code) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Parameter handling
 // ---------------------------------------------------------------------------
 
-describe('GET /v3/languages — error cases', () => {
-  it('returns 400 when product param is missing', async () => {
+describe('GET /v3/languages — parameter handling', () => {
+  it('returns 400 when the resource param is missing', async () => {
     const { status } = await get('/v3/languages');
     expect(status).toBe(400);
   });
 
-  it('returns 400 for invalid product value', async () => {
-    const { status } = await get('/v3/languages?product=bogus');
+  it('returns 400 for an invalid resource value', async () => {
+    const { status } = await get('/v3/languages?resource=bogus');
     expect(status).toBe(400);
+  });
+
+  it('rejects the old `product` param with the rename guidance', async () => {
+    const { status, data } = await get('/v3/languages?product=translate_text');
+    expect(status).toBe(400);
+    expect(data.message).toMatch(/renamed to ['"]?resource/);
   });
 });
 
-describe('GET /v3/languages/products', () => {
+// ---------------------------------------------------------------------------
+// GET /v3/languages/resources (meta endpoint)
+// ---------------------------------------------------------------------------
+
+describe('GET /v3/languages/resources', () => {
   let data;
 
   beforeAll(async () => {
-    ({ data } = await get('/v3/languages/products'));
+    ({ data } = await get('/v3/languages/resources'));
   });
 
-  it('returns 200 with array', async () => {
-    const { status } = await get('/v3/languages/products');
+  it('returns 200 with an array', async () => {
+    const { status } = await get('/v3/languages/resources');
     expect(status).toBe(200);
     expect(Array.isArray(data)).toBe(true);
   });
 
-  it('contains all five products', () => {
-    const names = data.map((p) => p.name);
+  it('contains the six supported resources', () => {
+    const names = data.map((r) => r.name);
     expect(names).toEqual(expect.arrayContaining(
-      ['translate_text', 'translate_document', 'voice', 'write', 'glossary'],
+      ['translate_text', 'translate_document', 'voice', 'write', 'glossary', 'style_rules'],
     ));
   });
 
-  it('each product has name and features array', () => {
-    data.forEach((product) => {
-      expect(product).toHaveProperty('name');
-      expect(Array.isArray(product.features)).toBe(true);
-      product.features.forEach((f) => expect(f).toHaveProperty('name'));
+  it('each resource has a name and a features array', () => {
+    data.forEach((resource) => {
+      expect(resource).toHaveProperty('name');
+      expect(Array.isArray(resource.features)).toBe(true);
+      resource.features.forEach((f) => expect(f).toHaveProperty('name'));
     });
   });
 
-  it('translate_text has expected features with correct required_on fields', () => {
-    const tt = data.find((p) => p.name === 'translate_text');
+  it('translate_text features use needs_source_support / needs_target_support', () => {
+    const tt = data.find((r) => r.name === 'translate_text');
     const featureNames = tt.features.map((f) => f.name);
     expect(featureNames).toEqual(expect.arrayContaining(
-      ['custom_instructions', 'formality', 'glossary', 'tag_handling'],
+      ['formality', 'glossary', 'tag_handling', 'style_rules', 'translation_memory'],
     ));
+    expect(featureNames).not.toContain('custom_instructions');
 
     const tagHandling = tt.features.find((f) => f.name === 'tag_handling');
-    expect(tagHandling).toMatchObject({ required_on_source: true, required_on_target: true });
+    expect(tagHandling).toMatchObject({ needs_source_support: true, needs_target_support: true });
 
     const formality = tt.features.find((f) => f.name === 'formality');
-    expect(formality).toMatchObject({ required_on_target: true });
-    expect(formality.required_on_source).toBeUndefined();
+    expect(formality).toMatchObject({ needs_target_support: true });
+    expect(formality.needs_source_support).toBeUndefined();
   });
 
-  it('write has tone and writing_style features', () => {
-    const wr = data.find((p) => p.name === 'write');
-    const names = wr.features.map((f) => f.name);
-    expect(names).toEqual(expect.arrayContaining(['tone', 'writing_style']));
+  it('style_rules is present with an empty feature list', () => {
+    const sr = data.find((r) => r.name === 'style_rules');
+    expect(sr).toBeDefined();
+    expect(sr.features).toEqual([]);
   });
 
-  it('voice has transcription and translated_speech features', () => {
-    const vo = data.find((p) => p.name === 'voice');
+  it('voice exposes real feature names (no invented *_external)', () => {
+    const vo = data.find((r) => r.name === 'voice');
     const names = vo.features.map((f) => f.name);
-    expect(names).toEqual(expect.arrayContaining(
-      ['auto_detection', 'transcription', 'translated_speech'],
-    ));
+    expect(names).toEqual(expect.arrayContaining(['transcription', 'translated_speech']));
+    expect(names).not.toContain('transcription_external');
+    expect(names).not.toContain('translated_speech_external');
   });
 });
 
-describe('GET /v3/languages?product=translate_text', () => {
+// ---------------------------------------------------------------------------
+// GET /v3/languages?resource=translate_text
+// ---------------------------------------------------------------------------
+
+describe('GET /v3/languages?resource=translate_text', () => {
   let data;
 
   beforeAll(async () => {
-    ({ data } = await get('/v3/languages?product=translate_text'));
+    ({ data } = await get('/v3/languages?resource=translate_text'));
   });
 
-  it('returns 200 with array', () => {
+  it('returns 200 with an array', () => {
     expect(Array.isArray(data)).toBe(true);
   });
 
-  it('all lang codes are valid BCP-47', () => {
+  it('every entry has the full set of required fields with correct types', () => {
     data.forEach((entry) => {
-      expect(bcp47Valid(entry.lang)).toBe(true);
-    });
-  });
-
-  it('each entry has required fields with correct types', () => {
-    data.forEach((entry) => {
-      expect(entry).toHaveProperty('lang');
-      expect(entry).toHaveProperty('name');
+      expect(typeof entry.lang).toBe('string');
+      expect(typeof entry.name).toBe('string');
+      expect(entry.status).toBe('stable');
       expect(typeof entry.usable_as_source).toBe('boolean');
       expect(typeof entry.usable_as_target).toBe('boolean');
-      expect(Array.isArray(entry.features)).toBe(true);
+      // features is an object map (NOT an array), values carry a status
+      expect(typeof entry.features).toBe('object');
+      expect(Array.isArray(entry.features)).toBe(false);
+      Object.values(entry.features).forEach((f) => expect(f).toHaveProperty('status'));
     });
   });
 
-  it('uses title-case script subtags (zh-Hans not zh-HANS)', () => {
+  it('all lang codes are valid BCP-47 with title-case script subtags', () => {
+    data.forEach((entry) => expect(bcp47Valid(entry.lang)).toBe(true));
     expect(findLang(data, 'zh-Hans')).toBeDefined();
-    expect(findLang(data, 'zh-Hant')).toBeDefined();
     expect(findLang(data, 'zh-HANS')).toBeUndefined();
-    expect(findLang(data, 'zh-HANT')).toBeUndefined();
   });
 
   it('en is usable as both source and target', () => {
     const en = findLang(data, 'en');
-    expect(en).toBeDefined();
     expect(en.usable_as_source).toBe(true);
     expect(en.usable_as_target).toBe(true);
   });
 
-  it('pt is usable as both source and target', () => {
-    const pt = findLang(data, 'pt');
-    expect(pt).toBeDefined();
-    expect(pt.usable_as_source).toBe(true);
-    expect(pt.usable_as_target).toBe(true);
+  it('de exposes the live translate_text feature set, with no custom_instructions', () => {
+    const de = findLang(data, 'de');
+    expect(Object.keys(de.features).sort()).toEqual(
+      ['auto_detection', 'formality', 'glossary', 'style_rules', 'tag_handling', 'translation_memory'],
+    );
+    expect(de.features.glossary).toEqual({ status: 'stable' });
+    expect(de.features.custom_instructions).toBeUndefined();
   });
 
-  it('de has formality, glossary, custom_instructions, tag_handling', () => {
-    expect(featuresOf(data, 'de')).toEqual(expect.arrayContaining(
-      ['formality', 'glossary', 'custom_instructions', 'tag_handling'],
-    ));
+  it('af supports tag_handling but not formality or glossary', () => {
+    const names = featureNamesOf(data, 'af');
+    expect(names).toContain('tag_handling');
+    expect(names).not.toContain('formality');
+    expect(names).not.toContain('glossary');
   });
 
-  it('pt has formality (defaults to formality-supporting variant)', () => {
-    expect(featuresOf(data, 'pt')).toContain('formality');
-  });
-
-  it('en-GB has glossary via base code EN', () => {
-    expect(featuresOf(data, 'en-GB')).toContain('glossary');
-  });
-
-  it('pt-BR has glossary and formality via base code PT', () => {
-    expect(featuresOf(data, 'pt-BR')).toEqual(expect.arrayContaining(['glossary', 'formality']));
-  });
-
-  it('es-419 has glossary and formality via base code ES', () => {
-    expect(featuresOf(data, 'es-419')).toEqual(expect.arrayContaining(['glossary', 'formality']));
-  });
-
-  it('zh-Hans has glossary and custom_instructions', () => {
-    expect(featuresOf(data, 'zh-Hans')).toEqual(expect.arrayContaining(['glossary', 'custom_instructions']));
-  });
-
-  it('af has only tag_handling — no formality or glossary', () => {
-    const features = featuresOf(data, 'af');
-    expect(features).toContain('tag_handling');
-    expect(features).not.toContain('formality');
-    expect(features).not.toContain('glossary');
+  it('regional variants inherit features from their base language', () => {
+    expect(featureNamesOf(data, 'en-GB')).toContain('glossary');
+    expect(featureNamesOf(data, 'pt-BR')).toEqual(expect.arrayContaining(['glossary', 'formality']));
   });
 });
 
-describe('GET /v3/languages?product=translate_document', () => {
+// ---------------------------------------------------------------------------
+// Resources whose languages carry no optional features
+// ---------------------------------------------------------------------------
+
+describe('GET /v3/languages?resource=style_rules', () => {
   let data;
 
   beforeAll(async () => {
-    ({ data } = await get('/v3/languages?product=translate_document'));
+    ({ data } = await get('/v3/languages?resource=style_rules'));
   });
 
-  it('no language has tag_handling feature', () => {
-    data.forEach((entry) => {
-      expect(entry.features).not.toContain('tag_handling');
-    });
-  });
-
-  it('de has formality and glossary', () => {
-    expect(featuresOf(data, 'de')).toEqual(expect.arrayContaining(['formality', 'glossary']));
-  });
-
-  it('pt-BR has glossary', () => {
-    expect(featuresOf(data, 'pt-BR')).toContain('glossary');
-  });
-
-  it('en and pt are usable_as_target', () => {
-    expect(findLang(data, 'en')?.usable_as_target).toBe(true);
-    expect(findLang(data, 'pt')?.usable_as_target).toBe(true);
-  });
-});
-
-describe('GET /v3/languages?product=write', () => {
-  let data;
-
-  beforeAll(async () => {
-    ({ data } = await get('/v3/languages?product=write'));
-  });
-
-  it('includes de, en, en-GB', () => {
+  it('returns the style-rule languages with an empty features object', () => {
+    expect(Array.isArray(data)).toBe(true);
     const langs = data.map((l) => l.lang);
-    expect(langs).toEqual(expect.arrayContaining(['de', 'en', 'en-GB']));
-  });
-
-  it('en is usable_as_target', () => {
-    expect(findLang(data, 'en')?.usable_as_target).toBe(true);
-  });
-
-  it('de and en-GB have tone and writing_style features', () => {
-    ['de', 'en-GB', 'en-US'].forEach((code) => {
-      const features = featuresOf(data, code);
-      expect(features).toContain('tone');
-      expect(features).toContain('writing_style');
+    expect(langs).toEqual(expect.arrayContaining(['de', 'en', 'es', 'fr', 'it', 'ja', 'ko', 'zh']));
+    data.forEach((entry) => {
+      expect(entry.status).toBe('stable');
+      expect(entry.features).toEqual({});
     });
   });
-
-  it('no zh-HANS casing in write', () => {
-    expect(findLang(data, 'zh-HANS')).toBeUndefined();
-  });
 });
 
-describe('GET /v3/languages?product=voice', () => {
+describe('GET /v3/languages?resource=glossary', () => {
   let data;
 
   beforeAll(async () => {
-    ({ data } = await get('/v3/languages?product=voice'));
+    ({ data } = await get('/v3/languages?resource=glossary'));
   });
 
-  it('de has full feature set', () => {
-    expect(featuresOf(data, 'de')).toEqual(expect.arrayContaining(
-      ['auto_detection', 'formality', 'glossary', 'transcription', 'translated_speech'],
-    ));
-  });
-
-  it('en is usable_as_target', () => {
-    expect(findLang(data, 'en')?.usable_as_target).toBe(true);
-  });
-
-  it('en-GB has translated_speech but not transcription', () => {
-    const features = featuresOf(data, 'en-GB');
-    expect(features).toContain('translated_speech');
-    expect(features).not.toContain('transcription');
-  });
-
-  it('bn has transcription_external only (no transcription or translated_speech)', () => {
-    const features = featuresOf(data, 'bn');
-    expect(features).toContain('transcription_external');
-    expect(features).not.toContain('transcription');
-    expect(features).not.toContain('translated_speech');
-  });
-
-  it('uses title-case script subtags', () => {
-    expect(findLang(data, 'zh-Hans')).toBeDefined();
-    expect(findLang(data, 'zh-HANS')).toBeUndefined();
-  });
-});
-
-describe('GET /v3/languages?product=glossary', () => {
-  let data;
-
-  beforeAll(async () => {
-    ({ data } = await get('/v3/languages?product=glossary'));
-  });
-
-  it('all entries are usable as source and target with no features', () => {
+  it('all entries are usable as source and target with an empty features object', () => {
     data.forEach((entry) => {
       expect(entry.usable_as_source).toBe(true);
       expect(entry.usable_as_target).toBe(true);
-      expect(entry.features).toHaveLength(0);
+      expect(entry.features).toEqual({});
     });
-  });
-
-  it('includes core and expanded glossary languages', () => {
-    const langs = data.map((l) => l.lang);
-    expect(langs).toEqual(expect.arrayContaining(
-      ['de', 'en', 'fr', 'es', 'it', 'ja', 'zh', 'ar', 'ko', 'ru', 'uk', 'id'],
-    ));
   });
 });

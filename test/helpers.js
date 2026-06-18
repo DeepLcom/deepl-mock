@@ -28,10 +28,11 @@ function get(path) {
       (res) => {
         let body = '';
         res.on('data', (chunk) => { body += chunk; });
-        res.on('end', () => resolve({
-          status: res.statusCode,
-          data: res.statusCode === 200 ? JSON.parse(body) : null,
-        }));
+        res.on('end', () => {
+          let data = null;
+          try { data = body ? JSON.parse(body) : null; } catch { data = null; }
+          resolve({ status: res.statusCode, data });
+        });
       },
     );
     req.on('error', reject);

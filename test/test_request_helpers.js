@@ -229,22 +229,20 @@ async function testLastRequestErrorCases() {
 }
 
 // ---------------------------------------------------------------------------
-// Test 4b: Real DeepL API endpoints excluded from spec validation for
-//          unrelated reasons (binary bodies, not-yet-in-spec) MUST still be
-//          subject to 5xx fault injection and request capture — SDK retry
-//          tests need to drive faults on those endpoints.
+// Test 4b: Real API endpoints (everything except the mock-only internal paths)
+//          must still be subject to 5xx fault injection and request capture, so
+//          SDK retry tests can drive faults on those endpoints.
 // ---------------------------------------------------------------------------
-async function test5xxAppliesToValidationExcludedRealPaths() {
+async function test5xxAppliesToRealApiPaths() {
   const port = PORT_BASE + 8;
   const proc = startServer(port);
   try {
     await waitForServer(proc);
 
-    // /v3/languages is excluded from spec validation (not-yet-in-spec) but
-    // is a real API endpoint — 5xx injection must apply.
+    // /v3/languages/resources is a real API endpoint; 5xx injection must apply.
     const session = 'helpers-5xx-real-paths';
     const r1 = await request(port, {
-      path: '/v3/languages?product=translate_text',
+      path: '/v3/languages/resources',
       headers: {
         'mock-server-session': session,
         'mock-server-session-5xx-count': '1',
@@ -253,7 +251,7 @@ async function test5xxAppliesToValidationExcludedRealPaths() {
     assert.strictEqual(
       r1.status,
       503,
-      `/v3/languages should receive injected 503, got ${r1.status}`,
+      `/v3/languages/resources should receive injected 503, got ${r1.status}`,
     );
 
     // /v2/translate_secondary is mock-only-named but registered as a normal
@@ -274,13 +272,13 @@ async function test5xxAppliesToValidationExcludedRealPaths() {
       `/v2/translate_secondary should receive injected 503, got ${r2.status}`,
     );
 
-    console.log('PASS: 5xx applies to real API paths that are validation-excluded');
+    console.log('PASS: 5xx applies to real API paths');
   } finally {
     proc.kill();
   }
 }
 
-async function testCaptureAppliesToValidationExcludedRealPaths() {
+async function testCaptureAppliesToRealApiPaths() {
   const port = PORT_BASE + 9;
   const proc = startServer(port);
   try {
@@ -288,7 +286,7 @@ async function testCaptureAppliesToValidationExcludedRealPaths() {
 
     const session = 'helpers-capture-real-paths';
     const langs = await request(port, {
-      path: '/v3/languages?product=translate_text',
+      path: '/v3/languages/resources',
       headers: { 'mock-server-session': session },
     });
     assert.strictEqual(langs.status, 200);
@@ -300,16 +298,11 @@ async function testCaptureAppliesToValidationExcludedRealPaths() {
     assert.strictEqual(captured.status, 200);
     assert.strictEqual(
       captured.body.path,
-      '/v3/languages',
-      `expected captured path /v3/languages, got ${captured.body.path}`,
-    );
-    assert.strictEqual(
-      captured.body.query.product,
-      'translate_text',
-      `expected query.product=translate_text, got ${JSON.stringify(captured.body.query)}`,
+      '/v3/languages/resources',
+      `expected captured path /v3/languages/resources, got ${captured.body.path}`,
     );
 
-    console.log('PASS: capture applies to real API paths that are validation-excluded');
+    console.log('PASS: capture applies to real API paths');
   } finally {
     proc.kill();
   }
@@ -948,8 +941,8 @@ async function main() {
     ['5xx-status override', test5xxStatusOverride],
     ['last-request captures body', testLastRequestCapture],
     ['last-request error cases', testLastRequestErrorCases],
-    ['5xx applies to validation-excluded real paths', test5xxAppliesToValidationExcludedRealPaths],
-    ['capture applies to validation-excluded real paths', testCaptureAppliesToValidationExcludedRealPaths],
+    ['5xx applies to real API paths', test5xxAppliesToRealApiPaths],
+    ['capture applies to real API paths', testCaptureAppliesToRealApiPaths],
     ['last-request bypasses 5xx', testLastRequestBypasses5xx],
     ['VALIDATE_REQUESTS catches bad body', testValidateRequestsCatchesBadBody],
     ['allow-extra-body escapes validation', testAllowExtraBodyEscapesValidation],

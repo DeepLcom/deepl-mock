@@ -1055,20 +1055,26 @@ function handleHealthz(req, res) {
 
 async function handleV3Languages(req, res) {
   try {
-    const product = getParam(req, 'product', {
+    if (req.query.product !== undefined && req.query.resource === undefined) {
+      res.status(400).send({
+        message: "Bad request. Reason: The 'product' parameter has been renamed to 'resource'.",
+      });
+      return;
+    }
+    const resource = getParam(req, 'resource', {
       required: true,
-      allowedValues: languages.VALID_PRODUCTS,
+      allowedValues: languages.VALID_RESOURCES,
       newErrorMessage: true,
     });
-    res.status(200).send(languages.getV3Languages(product));
+    res.status(200).send(languages.getV3Languages(resource));
   } catch (err) {
     res.status(400).send({ message: err.message });
   }
 }
 
-async function handleV3LanguageProducts(req, res) {
+async function handleV3LanguageResources(req, res) {
   try {
-    res.status(200).send(languages.getV3Products());
+    res.status(200).send(languages.getV3Resources());
   } catch (err) {
     res.status(400).send({ message: err.message });
   }
@@ -1175,7 +1181,7 @@ async function startServer() {
   app.delete('/v3/style_rules/:style_id/custom_instructions/:instruction_id', auth, requireUserAgent, handleCustomInstructionDelete.bind(null));
 
   // More-specific sub-paths must be registered before the base /v3/languages route
-  app.get('/v3/languages/products', auth, requireUserAgent, handleV3LanguageProducts);
+  app.get('/v3/languages/resources', auth, requireUserAgent, handleV3LanguageResources);
   app.get('/v3/languages', auth, requireUserAgent, handleV3Languages);
 
   // Mock-internal session helper endpoints. No auth: these inspect mock state.

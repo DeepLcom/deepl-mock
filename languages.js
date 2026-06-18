@@ -10,14 +10,16 @@ const translateDocumentConfig = require('./config/languages/product-translate-do
 const writeConfig = require('./config/languages/product-write.json');
 const voiceConfig = require('./config/languages/product-voice.json');
 const glossaryConfig = require('./config/languages/product-glossary.json');
+const styleRulesConfig = require('./config/languages/product-style-rules.json');
 const mockTexts = require('./config/languages/mock-translate-texts.json');
 
-const productConfigs = {
+const resourceConfigs = {
   translate_text: translateTextConfig,
   translate_document: translateDocumentConfig,
   write: writeConfig,
   voice: voiceConfig,
   glossary: glossaryConfig,
+  style_rules: styleRulesConfig,
 };
 
 const targetOnlySet = new Set(langListConfig.TargetOnlyLanguages);
@@ -185,17 +187,18 @@ function rephrase(_, targetLang) {
   };
 }
 
-const VALID_PRODUCTS = ['translate_text', 'translate_document', 'glossary', 'voice', 'write'];
+const VALID_RESOURCES = [
+  'translate_text', 'translate_document', 'glossary', 'voice', 'write', 'style_rules',
+];
 
-function getV3Products() {
-  return VALID_PRODUCTS.map((name) => {
-    const config = productConfigs[name];
+function getV3Resources() {
+  return VALID_RESOURCES.map((name) => {
+    const config = resourceConfigs[name];
     const features = config.Features
-      .filter((f) => (name === 'voice' ? (f.RequiredOnSource || f.RequiredOnTarget) : f.RequiredOnTarget))
       .map((f) => {
         const feat = { name: f.Name };
-        if (f.RequiredOnSource) feat.required_on_source = true;
-        if (f.RequiredOnTarget) feat.required_on_target = true;
+        if (f.RequiredOnSource) feat.needs_source_support = true;
+        if (f.RequiredOnTarget) feat.needs_target_support = true;
         return feat;
       })
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -203,30 +206,27 @@ function getV3Products() {
   });
 }
 
-function getV3Languages(product) {
-  const config = productConfigs[product];
+function getV3Languages(resource) {
+  const config = resourceConfigs[resource];
 
   return config.SupportedLanguages.map((code) => {
     const langInfo = langInfoMap.get(code);
     const name = langInfo?.Name ?? code;
     const usableAsSource = !targetOnlySet.has(code);
-    const features = [];
+    const features = {};
 
     config.Features.forEach((feature) => {
       const coveredByLang = !feature.Languages || feature.Languages.includes(code);
-      if (!coveredByLang) return;
-      const include = product === 'voice'
-        ? (feature.RequiredOnSource || feature.RequiredOnTarget)
-        : feature.RequiredOnTarget;
-      if (include) features.push(feature.Name);
+      if (coveredByLang) features[feature.Name] = { status: 'stable' };
     });
 
     return {
-      features,
       lang: convertToBcp47(code),
       name,
+      status: 'stable',
       usable_as_source: usableAsSource,
       usable_as_target: true,
+      features,
     };
   });
 }
@@ -247,7 +247,7 @@ module.exports = {
   isGlossarySupportedLanguagePair,
   translate,
   rephrase,
-  VALID_PRODUCTS,
+  VALID_RESOURCES,
   getV3Languages,
-  getV3Products,
+  getV3Resources,
 };
