@@ -1,0 +1,8 @@
+{
+  "Name": "translation_memory",
+  "SupportedLanguages": [
+    "de", "en", "en-GB", "en-US", "es", "es-419",
+    "fr", "it", "ja", "ko", "zh", "zh-Hans"
+  ],
+  "Features": []
+}

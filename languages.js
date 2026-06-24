@@ -11,6 +11,7 @@ const writeConfig = require('./config/languages/product-write.json');
 const voiceConfig = require('./config/languages/product-voice.json');
 const glossaryConfig = require('./config/languages/product-glossary.json');
 const styleRulesConfig = require('./config/languages/product-style-rules.json');
+const translationMemoryConfig = require('./config/languages/product-translation-memory.json');
 const mockTexts = require('./config/languages/mock-translate-texts.json');
 
 const resourceConfigs = {
@@ -20,6 +21,7 @@ const resourceConfigs = {
   voice: voiceConfig,
   glossary: glossaryConfig,
   style_rules: styleRulesConfig,
+  translation_memory: translationMemoryConfig,
 };
 
 const targetOnlySet = new Set(langListConfig.TargetOnlyLanguages);
@@ -189,6 +191,7 @@ function rephrase(_, targetLang) {
 
 const VALID_RESOURCES = [
   'translate_text', 'translate_document', 'glossary', 'voice', 'write', 'style_rules',
+  'translation_memory',
 ];
 
 function getV3Resources() {
@@ -206,6 +209,10 @@ function getV3Resources() {
   });
 }
 
+// Per-language features are derived from coarse config rules, so feature
+// membership is spec-valid but does not mirror prod exactly (e.g. source-side
+// features like auto_detection are not emitted per-language). Identity and
+// usable_as_source/target are accurate.
 function getV3Languages(resource) {
   const config = resourceConfigs[resource];
 

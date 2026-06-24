@@ -77,10 +77,10 @@ describe('GET /v3/languages/resources', () => {
     expect(Array.isArray(data)).toBe(true);
   });
 
-  it('contains the six supported resources', () => {
+  it('contains the seven supported resources', () => {
     const names = data.map((r) => r.name);
     expect(names).toEqual(expect.arrayContaining(
-      ['translate_text', 'translate_document', 'voice', 'write', 'glossary', 'style_rules'],
+      ['translate_text', 'translate_document', 'voice', 'write', 'glossary', 'style_rules', 'translation_memory'],
     ));
   });
 
@@ -112,6 +112,12 @@ describe('GET /v3/languages/resources', () => {
     const sr = data.find((r) => r.name === 'style_rules');
     expect(sr).toBeDefined();
     expect(sr.features).toEqual([]);
+  });
+
+  it('translation_memory is present with an empty feature list', () => {
+    const tm = data.find((r) => r.name === 'translation_memory');
+    expect(tm).toBeDefined();
+    expect(tm.features).toEqual([]);
   });
 
   it('voice exposes real feature names (no invented *_external)', () => {
